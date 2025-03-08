@@ -1,48 +1,48 @@
 <template>
-<div class="pixel-love-timer">
-    <div class="timer-container">
-    <div class="pixel-heart"></div>
-    <h1 class="pixel-title">Countdown to Special Day</h1>
-    
-    <div class="timer-display">
-        <div class="timer-unit">
-        <div class="timer-value">{{ days }}</div>
-        <div class="timer-label">DAYS</div>
-        </div>
-        <div class="timer-unit">
-        <div class="timer-value">{{ hours }}</div>
-        <div class="timer-label">HOURS</div>
-        </div>
-        <div class="timer-unit">
-        <div class="timer-value">{{ minutes }}</div>
-        <div class="timer-label">MINUTES</div>
-        </div>
-        <div class="timer-unit">
-        <div class="timer-value">{{ seconds }}</div>
-        <div class="timer-label">SECONDS</div>
-        </div>
-    </div>
-    
-    <div class="message-box">
-        <p class="pixel-message">{{ message }}</p>
+    <div class="pixel-love-timer">
+        <div class="timer-container">
+        <div class="pixel-heart"></div>
+        <h1 class="pixel-title">Countdown to Special Day</h1>
         
-        <!-- Link ke halaman utama yang hanya muncul pada hari H -->
-        <div v-if="isSpecialDay" class="home-link-container">
-        <a href="/" class="home-link">
-            <span class="pixel-arrow">→</span> Go to Main Page <span class="pixel-arrow">←</span>
-        </a>
+        <div class="timer-display">
+            <div class="timer-unit">
+            <div class="timer-value">{{ days }}</div>
+            <div class="timer-label">DAYS</div>
+            </div>
+            <div class="timer-unit">
+            <div class="timer-value">{{ hours }}</div>
+            <div class="timer-label">HOURS</div>
+            </div>
+            <div class="timer-unit">
+            <div class="timer-value">{{ minutes }}</div>
+            <div class="timer-label">MINUTES</div>
+            </div>
+            <div class="timer-unit">
+            <div class="timer-value">{{ seconds }}</div>
+            <div class="timer-label">SECONDS</div>
+            </div>
+        </div>
+        
+        <div class="message-box">
+            <p class="pixel-message">{{ message }}</p>
+            
+            <!-- Link ke halaman utama yang hanya muncul pada hari H -->
+            <div v-if="isSpecialDay" class="home-link-container">
+            <a href="/" class="home-link">
+                <span class="pixel-arrow">→</span> Go to Main Page <span class="pixel-arrow">←</span>
+            </a>
+            </div>
+        </div>
+        
+        <div class="pixel-hearts-container">
+            <div class="small-heart heart1"></div>
+            <div class="small-heart heart2"></div>
+            <div class="small-heart heart3"></div>
+            <div class="small-heart heart4"></div>
+            <div class="small-heart heart5"></div>
+        </div>
         </div>
     </div>
-    
-    <div class="pixel-hearts-container">
-        <div class="small-heart heart1"></div>
-        <div class="small-heart heart2"></div>
-        <div class="small-heart heart3"></div>
-        <div class="small-heart heart4"></div>
-        <div class="small-heart heart5"></div>
-    </div>
-    </div>
-</div>
 </template>
 
 <script>
