@@ -8,7 +8,7 @@
           @click="toggleChallengeVisibility" 
           class="pixel-button challenge-btn"
         >
-          {{ isChallengeVisible ? 'Hide Challenge' : 'Show Daily Challenge' }}
+          {{ isChallengeVisible ? 'Tutup' : 'I nak challenges' }}
         </button>
       </div>
       
@@ -52,6 +52,7 @@ export default {
   background-image: linear-gradient(45deg, #ffb6c1 25%, #ffc0cb 25%, #ffc0cb 50%, #ffb6c1 50%, #ffb6c1 75%, #ffc0cb 75%, #ffc0cb 100%);
   background-size: 20px 20px;
   min-height: 100vh;
+  min-width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -110,4 +111,5 @@ export default {
   opacity: 1;
   transform: translateY(0);
 }
+
 </style>
