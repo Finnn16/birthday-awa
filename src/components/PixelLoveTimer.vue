@@ -148,7 +148,6 @@ image-rendering: pixelated;
 color: #ff1493;
 font-size: 24px;
 margin-bottom: 40px;
-text-shadow: 2px 2px 0 #ff69b4;
 letter-spacing: -1px;
 }
 

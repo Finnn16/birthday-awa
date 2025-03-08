@@ -249,7 +249,7 @@ export default {
     isValidTime() {
       if (!this.currentIndonesiaTime) return false
       const hours = this.currentIndonesiaTime.getHours()
-      return hours >= 0 && hours < 21
+      return hours >= 9 && hours < 21
     },  
     isValidPeriod() {
       if (!this.currentIndonesiaTime) return false
