@@ -2,6 +2,31 @@
   <div class="pixel-challenge-container">
     <div class="challenge-wrapper">
       <div class="pixel-heart-challenge"></div>
+
+      <div class="player-stats-container">
+        <div class="player-level">
+          <div class="level-badge">
+            Level {{ currentLevelInfo.level }}: {{ currentLevelInfo.name }}
+          </div>
+          
+          <div class="points-display">
+            Total Points: {{ playerStats.totalPoints }}
+          </div>
+          
+          <div class="level-progress">
+            <div 
+              class="progress-bar" 
+              :style="{ width: `${progressToNextLevel}%` }"
+            ></div>
+          </div>
+          
+          <div v-if="nextLevelInfo" class="next-level-info">
+            <p>Next Level: {{ nextLevelInfo.name }}</p>
+            <p>Hadiah 1: {{ nextLevelInfo.reward }}</p>
+            <p>Hadiah 2: {{ nextLevelInfo.physicalReward }}</p>
+          </div>
+        </div>
+      </div>
       
       <h2 class="challenge-title">Goal : Agar Makin Asik Jeu mwehehehe</h2>
       
@@ -101,19 +126,19 @@ export default {
         ],
         '10-03-2025': [
           { 
-            text: "Share your top 3 personal growth moments from the past year",
-            category: "Reflection",
+            text: "Bagikan Minimal 3 Momen Berkesan Kalian",
+            category: "Memory Lane",
+            difficulty: 1,
+            completed: false
+          },
+          { 
+            text: "Rekam Video Singkat Terkait Kegiatan Hari Ini",
+            category: "Having Fun",
             difficulty: 3,
             completed: false
           },
           { 
-            text: "Create a collaborative playlist representing your relationship journey",
-            category: "Emotional Connection",
-            difficulty: 2,
-            completed: false
-          },
-          { 
-            text: "Write and exchange future dream scenarios for your relationship",
+            text: "Diskusikan Keberatan Anda Tentang Hubungan",
             category: "Future Planning",
             difficulty: 4,
             completed: false
@@ -242,8 +267,198 @@ export default {
       },
       completedChallenges: [],
       todayChallenges: [],
-      currentIndonesiaTime: null
+      currentIndonesiaTime: null,
+      playerStats: {
+        totalPoints: 0,
+        currentLevel: 1,
+        levelInfo: [
+        { 
+            level: 0, 
+            name: "PDKT", 
+            minPoints: 0, 
+            maxPoints: 10,
+            reward: "Kartu Digital Ucapan (Birthday)",
+            physicalReward: "Coklat atau permen bebas awa"
+          },
+          { 
+            level: 1, 
+            name: "EZ INIMAH BLOM KECINTAAN", 
+            minPoints: 11, 
+            maxPoints: 25,
+            reward: "Kartu Digital Ucapan (Birthday)",
+            physicalReward: "Coklat atau permen bebas sayangku"
+          },
+          { 
+            level: 2, 
+            name: "Bibit Bibit cingtaah nich<3", 
+            minPoints: 26, 
+            maxPoints: 50,
+            reward: "Nonton Bioskop",
+            physicalReward: "Mam Pecel Persaudaraan"
+          },
+          { 
+            level: 3, 
+            name: "Mitra Sejati", 
+            minPoints: 51, 
+            maxPoints: 75,
+            reward: "Animasi spesial saat login",
+            physicalReward: "Gelang couple atau kaos couple sederhana"
+          },
+          { 
+            level: 4, 
+            name: "Legenda Cinta", 
+            minPoints: 76, 
+            maxPoints: 100,
+            reward: "Titel khusus di profile",
+            physicalReward: "Dinner voucher atau pengalaman bersama"
+          }
+        ]
+      },
+      dailyChallengesStatus: {}
     }
+  },
+  methods: {
+    getIndonesiaTime() {
+      const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }))
+      this.currentIndonesiaTime = now
+      return now
+    },
+    setTodayChallenges() {
+      const todayKey = this.todayKey
+      this.todayChallenges = this.challenges[todayKey] || []
+    },
+    loadCompletedChallenges() {
+      const saved = localStorage.getItem('completedChallenges')
+      if (saved) {
+        this.completedChallenges = JSON.parse(saved)
+      }
+    },
+    loadPlayerStats() {
+      const savedStats = localStorage.getItem('playerStats')
+      if (savedStats) {
+        this.playerStats = JSON.parse(savedStats)
+      }
+    },
+    savePlayerStats() {
+      localStorage.setItem('playerStats', JSON.stringify(this.playerStats))
+    },
+    updatePlayerPoints(difficulty) {
+      // Tambahkan poin sesuai difficulty challenge
+      this.playerStats.totalPoints += difficulty
+      
+      // Update level jika perlu
+      this.updatePlayerLevel()
+      
+      // Simpan stats
+      this.savePlayerStats()
+    },
+    updatePlayerLevel() {
+      const currentLevel = this.playerStats.levelInfo.find(
+        level => this.playerStats.totalPoints >= level.minPoints && 
+                 this.playerStats.totalPoints <= level.maxPoints
+      )
+      
+      if (currentLevel) {
+        this.playerStats.currentLevel = currentLevel.level
+      }
+    },
+    completeChallenge(index) {
+      if (!this.todayChallenges[index]) return
+
+      const challenge = this.todayChallenges[index]
+      
+      // Mark challenge as completed
+      challenge.completed = true
+
+      // Update player points
+      this.updatePlayerPoints(challenge.difficulty)
+
+      // Add to completed challenges
+      this.completedChallenges.unshift({
+        text: challenge.text,
+        completed: true,
+        points: challenge.difficulty,
+        date: this.getIndonesiaTime().toISOString()
+      })
+      
+      // Save challenges
+      this.saveCompletedChallenges()
+    },
+    saveCompletedChallenges() {
+      localStorage.setItem('completedChallenges', JSON.stringify(this.completedChallenges))
+    },
+    loadDailyChallengesStatus() {
+      const saved = localStorage.getItem('dailyChallengesStatus')
+      if (saved) {
+        this.dailyChallengesStatus = JSON.parse(saved)
+      }
+    },
+
+    // Metode untuk menyimpan status challenges harian
+    saveDailyChallengesStatus() {
+      localStorage.setItem('dailyChallengesStatus', JSON.stringify(this.dailyChallengesStatus))
+    },
+
+    // Modifikasi metode setTodayChallenges
+    setTodayChallenges() {
+      const todayKey = this.todayKey
+      
+      // Cek apakah challenges untuk hari ini sudah pernah dimuat sebelumnya
+      const savedDayStatus = this.dailyChallengesStatus[todayKey]
+      
+      // Ambil challenges untuk hari ini
+      let todayChallenges = this.challenges[todayKey] || []
+      
+      // Jika sudah ada status sebelumnya, gunakan status tersebut
+      if (savedDayStatus) {
+        todayChallenges = todayChallenges.map(challenge => ({
+          ...challenge,
+          completed: savedDayStatus[challenge.text] || false
+        }))
+      }
+      
+      this.todayChallenges = todayChallenges
+    },
+
+    completeChallenge(index) {
+      if (!this.todayChallenges[index]) return
+
+      const challenge = this.todayChallenges[index]
+      
+      // Mark challenge as completed
+      challenge.completed = true
+
+      // Update player points hanya jika belum pernah di-complete
+      const todayKey = this.todayKey
+      
+      // Inisialisasi status challenges untuk hari ini jika belum ada
+      if (!this.dailyChallengesStatus[todayKey]) {
+        this.dailyChallengesStatus[todayKey] = {}
+      }
+
+      // Cek apakah challenge sudah pernah diselesaikan sebelumnya
+      if (!this.dailyChallengesStatus[todayKey][challenge.text]) {
+        // Update player points
+        this.updatePlayerPoints(challenge.difficulty)
+        
+        // Tandai challenge sebagai sudah diselesaikan
+        this.dailyChallengesStatus[todayKey][challenge.text] = true
+      }
+
+      // Add to completed challenges
+      this.completedChallenges.unshift({
+        text: challenge.text,
+        completed: true,
+        points: challenge.difficulty,
+        date: this.getIndonesiaTime().toISOString()
+      })
+      
+      // Simpan status challenges
+      this.saveDailyChallengesStatus()
+      
+      // Simpan challenges
+      this.saveCompletedChallenges()
+    },
   },
   computed: {
     isValidTime() {
@@ -268,45 +483,37 @@ export default {
       const month = String(this.currentIndonesiaTime.getMonth() + 1).padStart(2, '0')
       const year = this.currentIndonesiaTime.getFullYear()
       return `${day}-${month}-${year}`
-    }
-  },
-  methods: {
-    getIndonesiaTime() {
-      const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }))
-      this.currentIndonesiaTime = now
-      return now
     },
-    setTodayChallenges() {
-      const todayKey = this.todayKey
-      this.todayChallenges = this.challenges[todayKey] || []
+    currentLevelInfo() {
+      return this.playerStats.levelInfo.find(
+        level => this.playerStats.totalPoints >= level.minPoints && 
+                 this.playerStats.totalPoints <= level.maxPoints
+      ) || this.playerStats.levelInfo[0]
     },
-    loadCompletedChallenges() {
-      const saved = localStorage.getItem('completedChallenges')
-      if (saved) {
-        this.completedChallenges = JSON.parse(saved)
-      }
+    nextLevelInfo() {
+      const currentLevelIndex = this.playerStats.levelInfo.findIndex(
+        level => level.level === this.currentLevelInfo.level
+      )
+      return this.playerStats.levelInfo[currentLevelIndex + 1] || null
     },
-    completeChallenge(index) {
-      if (!this.todayChallenges[index]) return
-
-      this.todayChallenges[index].completed = true
-
-      this.completedChallenges.unshift({
-        text: this.todayChallenges[index].text,
-        completed: true,
-        date: this.getIndonesiaTime().toISOString()
-      })
+    progressToNextLevel() {
+      const currentLevel = this.currentLevelInfo
+      const nextLevel = this.nextLevelInfo
       
-      this.saveCompletedChallenges()
-    },
-    saveCompletedChallenges() {
-      localStorage.setItem('completedChallenges', JSON.stringify(this.completedChallenges))
+      if (!nextLevel) return 100 // Max level
+      
+      const totalLevelRange = nextLevel.minPoints - currentLevel.minPoints
+      const currentProgress = this.playerStats.totalPoints - currentLevel.minPoints
+      
+      return Math.min((currentProgress / totalLevelRange) * 100, 100)
     }
   },
   mounted() {
     this.getIndonesiaTime()
     this.$nextTick(() => {
       this.loadCompletedChallenges()
+      this.loadPlayerStats()
+      this.loadDailyChallengesStatus()
       this.setTodayChallenges()
     })
   }
@@ -416,6 +623,57 @@ export default {
   font-size: 1.3rem;
   margin-bottom: 20px;
   text-align: center;
+}
+
+.player-stats-container {
+  background-color: #ffdde1;
+  border: 4px solid #ff69b4;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.level-badge {
+  background-color: #ff1493;
+  color: white;
+  padding: 10px;
+  border-radius: 20px;
+  font-size: 16px;
+  margin-bottom: 15px;
+  display: inline-block;
+}
+
+.points-display {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.level-progress {
+  background-color: #ffb6c1;
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #ff1493;
+  transition: width 0.5s ease;
+}
+
+.next-level-info {
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.next-level-info p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #666;
 }
 
 @media (max-width: 678px) {
