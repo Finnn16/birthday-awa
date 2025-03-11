@@ -146,21 +146,21 @@ export default {
         ],
         '11-03-2025': [
           { 
-            text: "Make a video compilation of your most cherished moments together",
-            category: "Memory Celebration",
+            text: "Buatkan atau kirimkan pasanganmu makanan",
+            category: "Bounding",
+            difficulty: 4,
+            completed: false
+          },
+          { 
+            text: "Kirimkan 5 Foto dan Video kamu hari ini",
+            category: "Bounding",
             difficulty: 3,
             completed: false
           },
           { 
-            text: "Exchange handwritten love notes with hidden meaningful symbols",
-            category: "Intimacy",
+            text: "Sebutkan beberapa barang Wishlist kamu",
+            category: "Planning",
             difficulty: 2,
-            completed: false
-          },
-          { 
-            text: "Create a joint bucket list for the next year of your relationship",
-            category: "Future Goals",
-            difficulty: 4,
             completed: false
           }
         ],
