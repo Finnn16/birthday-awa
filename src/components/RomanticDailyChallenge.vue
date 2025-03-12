@@ -2,7 +2,23 @@
   <div class="pixel-challenge-container">
     <div class="challenge-wrapper">
       <div class="pixel-heart-challenge"></div>
-
+      <div class="music-player">
+        <audio ref="bgMusic" loop>
+          <source src="/public/music/Maroon_5_Wont_Go_Home.mp3" type="audio/mpeg">
+          Browser Anda tidak mendukung elemen audio.
+        </audio>
+        <button 
+          @click="toggleMusic" 
+          class="pixel-button music-btn"
+          :class="{ 'playing': isMusicPlaying }"
+        >
+          {{ isMusicPlaying ? 'Pause Music' : 'Play Music' }}
+        </button>
+        <div class="lyrics-display">
+          <p class="typing-lyrics" 
+          :class="{ 'finished': isTypingFinished }">{{ displayedLyrics }}</p>
+        </div>
+      </div>
       <div class="player-stats-container">
         <div class="player-level">
           <div class="level-badge">
@@ -186,21 +202,21 @@ export default {
         ],
         '13-03-2025': [
           { 
-            text: "Write a comprehensive love story about your relationship",
-            category: "Communication",
-            difficulty: 3,
+            text: "Buat plan budgeting date dengan modal 100k untuk 2 orang",
+            category: "Planning",
+            difficulty: 4,
             completed: false
           },
           { 
-            text: "Create a digital time capsule of your current feelings and dreams",
+            text: "Tuliskan 5 hal yang ingin kamu lakukan bersama di masa depan",
             category: "Future Memories",
             difficulty: 2,
             completed: false
           },
           { 
-            text: "Design a personalized relationship growth challenge for each other",
-            category: "Personal Development",
-            difficulty: 4,
+            text: "Tulis pesan cinta pendek (maksimal 50 kata) dan kirim via teks atau gambar, lalu baca bersama di call.",
+            category: "Bonding",
+            difficulty: 2,
             completed: false
           }
         ],
@@ -314,10 +330,52 @@ export default {
           }
         ]
       },
-      dailyChallengesStatus: {}
+      dailyChallengesStatus: {},
+      isMusicPlaying: false,
+      startTime: 35,
+      isTypingFinished: false,
+      fullLyrics: "Just give me one more chance to make it right I may not make it through the night I won't go home without you...<3",
+      displayedLyrics: "",
+      typingSpeed: 100
     }
   },
   methods: {
+    toggleMusic() {
+      const audio = this.$refs.bgMusic;
+      if (!this.isMusicPlaying) {
+        audio.currentTime = this.startTime;
+        audio.play();
+        this.typeLyrics(); // Mulai efek ketik saat musik diputar
+      } else {
+        audio.pause();
+        this.displayedLyrics = this.fullLyrics; // Tampilkan semua lirik saat pause
+        this.isTypingFinished = true;
+      }
+      this.isMusicPlaying = !this.isMusicPlaying;
+    },
+    typeLyrics() {
+      if (this.typingInterval) {
+        clearInterval(this.typingInterval);
+      }
+
+      this.displayedLyrics = "";
+      this.isTypingFinished = false;
+      let charIndex = 0;
+
+      this.typingInterval = setInterval(() => {
+        if (charIndex < this.fullLyrics.length) {
+          this.displayedLyrics += this.fullLyrics[charIndex];
+          charIndex++;
+        } else {
+          clearInterval(this.typingInterval);
+          this.typingInterval = null;
+          this.isTypingFinished = true;
+          setTimeout(() => {
+            if (this.isMusicPlaying) this.typeLyrics();
+          }, 9000);
+        }
+      }, this.typingSpeed);
+    },
     getIndonesiaTime() {
       const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }))
       this.currentIndonesiaTime = now
@@ -464,7 +522,7 @@ export default {
     isValidTime() {
       if (!this.currentIndonesiaTime) return false
       const hours = this.currentIndonesiaTime.getHours()
-      return hours >= 22 && hours < 21
+      return hours >= 9 && hours < 21
     },  
     isValidPeriod() {
       if (!this.currentIndonesiaTime) return false
@@ -515,12 +573,88 @@ export default {
       this.loadPlayerStats()
       this.loadDailyChallengesStatus()
       this.setTodayChallenges()
+      this.toggleMusic()
+      this.typeLyrics()
     })
   }
 }
 </script>
 
 <style scoped>
+.music-player {
+  margin-bottom: 25px;
+  text-align: center;
+  position: relative;
+  padding: 20px;
+  background: linear-gradient(135deg, #ffdde1, #ffebf0); /* Gradien lembut */
+  border: 4px solid #ff69b4;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(255, 105, 180, 0.3); /* Bayangan pink */
+}
+
+/* Tombol Musik */
+.music-btn {
+  background-color: #ff69b4;
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+}
+
+.music-btn.playing {
+  background-color: #ff1493;
+  transform: scale(1.05); /* Efek membesar saat diputar */
+}
+
+.music-btn:hover {
+  background-color: #ff85c1;
+  box-shadow: 0 4px 8px rgba(255, 20, 147, 0.4);
+}
+
+/* Kontainer Lirik */
+.lyrics-display {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 2px dashed #ff1493; /* Garis putus-putus romantis */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(255, 20, 147, 0.2);
+}
+
+.typing-lyrics {
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  color: #ff1493;
+  white-space: pre-wrap;
+  border-right: 3px solid #ff69b4; 
+  animation: blink 0.75s step-end infinite;
+}
+
+.finished {
+  border-right: none; 
+}
+
+@keyframes blink {
+  from, to { border-color: transparent; }
+  50% { border-color: #ff69b4; }
+}
+
+/* Responsivitas */
+@media (max-width: 678px) {
+  .music-player {
+    padding: 15px;
+  }
+  
+  .typing-lyrics {
+    font-size: 14px;
+  }
+  
+  .music-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+}
+
 .challenges-content {
   display: flex;
   flex-direction: column;
