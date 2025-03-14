@@ -222,19 +222,19 @@ export default {
         ],
         '14-03-2025': [
           { 
-            text: "Craft a mutual appreciation letter highlighting each other's strengths",
-            category: "Words of Affirmation",
-            difficulty: 3,
-            completed: false
-          },
-          { 
-            text: "Create a visual representation of your emotional connection",
-            category: "Emotional Intimacy",
+            text: "Buatkan pasanganmu playlist lagu favoritmu",
+            category: "Fun",
             difficulty: 2,
             completed: false
           },
           { 
-            text: "Plan a comprehensive relationship review and future strategy",
+            text: "Buat story apresiasi pasanganmu",
+            category: "Word Of Affirmation",
+            difficulty: 4,
+            completed: false
+          },
+          { 
+            text: "Buat perencanaan evaluasi hubungan dan strategi masa depan",
             category: "Strategic Love",
             difficulty: 4,
             completed: false
@@ -285,7 +285,7 @@ export default {
       todayChallenges: [],
       currentIndonesiaTime: null,
       playerStats: {
-        totalPoints: 0,
+        totalPoints: 16,
         currentLevel: 1,
         levelInfo: [
         { 
