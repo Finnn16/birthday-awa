@@ -25,10 +25,10 @@
 </template>
 
 <script>
-import PixelLoveTimer from './components/PixelLoveTimer.vue';
-import RomanticDailyChallenge from './components/RomanticDailyChallenge.vue';
-import photobooth from './components/photobooth.vue';
-import lovenotes from './components/lovenotes.vue';
+import PixelLoveTimer from './components/PixelLoveTimer.vue'
+import RomanticDailyChallenge from './components/RomanticDailyChallenge.vue'
+import photobooth from './components/photobooth.vue'
+import lovenotes from './components/lovenotes.vue'
 
 export default {
   name: 'App',
@@ -36,23 +36,22 @@ export default {
     PixelLoveTimer,
     RomanticDailyChallenge,
     photobooth,
-    lovenotes,
+    lovenotes
   },
   data() {
     return {
-      isChallengeVisible: false,
-    };
+      isChallengeVisible: false
+    }
   },
   methods: {
     toggleChallengeVisibility() {
-      this.isChallengeVisible = !this.isChallengeVisible;
-    },
-  },
-};
+      this.isChallengeVisible = !this.isChallengeVisible
+    }
+  }
+}
 </script>
 
 <style scoped>
-/* Reset margin dan padding default dari body */
 :global(body) {
   margin: 0;
   padding: 0;
@@ -65,16 +64,11 @@ export default {
   background-size: 20px 20px;
   min-height: 100vh;
   min-width: 100vw;
-  height: 100vh; /* Pastikan penuh */
-  width: 100vw; /* Pastikan penuh */
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px;
   box-sizing: border-box;
-  position: fixed; /* Biar gak ada scroll */
-  top: 0;
-  left: 0;
 }
 
 .challenge-section {
@@ -128,4 +122,5 @@ export default {
   opacity: 1;
   transform: translateY(0);
 }
+
 </style>
