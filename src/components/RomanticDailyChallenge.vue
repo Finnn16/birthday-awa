@@ -44,7 +44,7 @@
       <h2 class="challenge-title">Goal: Agar Makin Asik Jeu mwehehehe</h2>
       
       <div v-if="!isValidPeriod" class="challenge-inactive">
-        <p>Challenges are only available from 07-04-2025 to 13-04-2025</p>
+        <p>Tantangan hanya tersedia dari 13-04-2025 sampai 19-04-2025</p>
       </div>
       
       <div v-else class="challenges-content">
@@ -80,14 +80,14 @@
               class="pixel-button complete-btn"
               :class="{ 'completed': challenge.completed }"
             >
-              {{ challenge.completed ? 'Completed' : 'Complete Challenge' }}
+              {{ challenge.completed ? 'Selesai' : 'Selesaikan Tantangan' }}
             </button>
           </div>
         </div>
       </div>
       
       <div class="challenge-history">
-        <h3>Challenge History</h3>
+        <h3>Riwayat Tantangan</h3>
         <ul>
           <li 
             v-for="(challenge, index) in completedChallenges" 
@@ -242,10 +242,6 @@ export default {
       this.currentIndonesiaTime = now;
       return now;
     },
-    setWeeklyChallenges() {
-      const weekKey = this.weekKey;
-      this.weeklyChallenges = this.challenges[weekKey] || [];
-    },
     loadCompletedChallenges() {
       const saved = localStorage.getItem('completedChallenges');
       if (saved) {
@@ -329,19 +325,19 @@ export default {
       const currentDate = this.currentIndonesiaTime.getDate();
       return (currentYear === 2025) && 
              (currentMonth === 4) && 
-             (currentDate >= 7 && currentDate <= 13);
+             (currentDate >= 13 && currentDate <= 19);
     },
     weekKey() {
       if (!this.currentIndonesiaTime) return '';
       const date = new Date(this.currentIndonesiaTime);
-      // Set to Monday of the current week
-      const dayOfWeek = date.getDay();
-      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      date.setDate(date.getDate() + diff);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      return `${day}-${month}-${year}`;
+      // Set ke tanggal mulai minggu (13 April 2025)
+      const startDate = new Date(2025, 3, 13); // 3 = April (0-based)
+      const currentDate = new Date(date);
+      const diffInDays = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+      if (diffInDays >= 0 && diffInDays < 7) {
+        return '13-04-2025';
+      }
+      return '';
     },
     currentLevelInfo() {
       return this.playerStats.levelInfo.find(
@@ -379,7 +375,7 @@ export default {
 </script>
 
 <style scoped>
-/* Same styles as original */
+/* Sama seperti sebelumnya, tidak diubah */
 .music-player {
   margin-bottom: 25px;
   text-align: center;
