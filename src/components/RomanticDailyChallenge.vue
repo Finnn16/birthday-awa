@@ -111,33 +111,33 @@ export default {
   data() {
     return {
       challenges: {
-        '07-04-2025': [
+        '14-04-2025': [
           { 
-            text: "Plan a special date night with a budget of 100k for two",
-            category: "Planning",
-            difficulty: 4,
-            completed: false
-          },
-          { 
-            text: "Write and share a short love letter (max 50 words) together",
-            category: "Bonding",
-            difficulty: 2,
-            completed: false
-          },
-          { 
-            text: "Create a playlist of 5 songs that remind you of each other",
+            text: "Bikin JJ berdua terus up di story ig kamu",
             category: "Fun",
+            difficulty: 3,
+            completed: false
+          },
+          { 
+            text: "Buat video 30 detik ngomong, -I Love You- berulang kali",
+            category: "Bonding",
+            difficulty: 3,
+            completed: false
+          },
+          { 
+            text: "Coba spill salah satu rahasia yang belum pernah kamu kasih tau(mayan poin no tipu-tipu)",
+            category: "Trust",
+            difficulty: 5,
+            completed: false
+          },
+          { 
+            text: "Bagikan 3 momen berkesan yang kamu ingat bebas, lewat line yaa",
+            category: "Memory Lane",
             difficulty: 2,
             completed: false
           },
           { 
-            text: "Share 3 memorable moments from your relationship",
-            category: "Memory Lane",
-            difficulty: 1,
-            completed: false
-          },
-          { 
-            text: "Discuss and list 5 future goals you want to achieve together",
+            text: "Berikan keluh kesah kamu 1 minggu ini (pasti terakhir ini complete nyaa)",
             category: "Future Planning",
             difficulty: 3,
             completed: false
@@ -177,11 +177,11 @@ export default {
           },
           { 
             level: 3, 
-            name: "Mitra Sejati", 
+            name: "CINTA MATI TAHAP 1", 
             minPoints: 51, 
             maxPoints: 75,
-            reward: "Animasi spesial saat login",
-            physicalReward: "Gelang couple atau kaos couple sederhana"
+            reward: "AYCE Kali Yaaa",
+            physicalReward: "Apaa yaa masih bingung mwehe"
           },
           { 
             level: 4, 
