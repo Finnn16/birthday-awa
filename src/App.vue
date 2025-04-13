@@ -11,7 +11,6 @@
           {{ isChallengeVisible ? 'Tutup' : 'I nak challenges' }}
         </button>
       </div>
-      <lovenotes />
       <photobooth />
       
       <transition name="slide-fade">
@@ -20,6 +19,8 @@
           class="daily-challenge-component"
         />
       </transition>
+
+      <lovenotes />
     </div>
   </div>
 </template>

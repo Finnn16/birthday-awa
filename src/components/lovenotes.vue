@@ -2,7 +2,7 @@
 <template>
   <div class="love-notes">
     <h1>Daily Love Note Challenge 💕</h1>
-    <p>Tulis pesan cinta harian buat pasanganmu, nanti otomatis tersimpan!</p>
+    <p>Tulis Pesan Singkat Saja Sayang (I love You Sayaaangku, semangat tudeyy!!)</p>
 
     <div class="note-form">
       <input
