@@ -138,4 +138,53 @@ h1 {
   background-color: #ffe6e6;
   padding: 10px;
   border-radius: 5px;
-  margin: 10
+  margin: 10px 0;
+}
+.note-form {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+.note-form input {
+  padding: 8px;
+  font-size: 14px;
+  border: 2px solid #ff69b4;
+  border-radius: 5px;
+  width: 300px;
+}
+.note-form button {
+  padding: 8px 15px;
+  background-color: #ff69b4;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.note-form button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.note-card {
+  background-color: #fff;
+  border: 2px solid #ff69b4;
+  border-radius: 10px;
+  padding: 15px;
+  text-align: left;
+}
+.note-card p {
+  margin: 0;
+  font-size: 16px;
+}
+.note-card small {
+  color: #888;
+  font-size: 12px;
+}
+</style>
