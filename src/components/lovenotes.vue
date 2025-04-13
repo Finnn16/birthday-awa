@@ -4,6 +4,10 @@
     <h1>Daily Love Note Challenge 💕</h1>
     <p>Tulis Pesan Singkat Saja Sayang (I love You Sayaaangku, semangat tudeyy!!)</p>
 
+    <div v-if="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
     <div class="note-form">
       <input
         v-model="newNote"
@@ -31,31 +35,36 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 
-// Cek apakah environment variables ada
-if (!supabaseUrl || !supabaseKey) {
-  console.error("Supabase URL atau Key tidak ditemukan! Pastikan VITE_SUPABASE_URL dan VITE_SUPABASE_KEY sudah diatur di environment variables.");
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 export default {
   data() {
     return {
       loveNotes: [],
       newNote: "",
       isSubmitting: false,
+      errorMessage: "",
     };
   },
   computed: {
     author() {
-      const userAgent = navigator.userAgent;
-      if (userAgent.includes("iPad")) {
-        return "Awa"; // iPad pacar otomatis jadi Awa
+      const userAgent = navigator.userAgent.toLowerCase();
+      if (userAgent.includes("ipad") || userAgent.includes("macintosh")) {
+        return "Awa"; // iPad atau Mac (untuk iPadOS)
       }
-      return "Harfin"; // Device lain (elo) jadi Harfin
+      return "Harfin"; // Device lain
     },
   },
   async mounted() {
+    // Cek Supabase config
+    if (!supabaseUrl || !supabaseKey) {
+      this.errorMessage = "Gagal terhubung ke server. Hubungi admin ya!";
+      console.error("Supabase URL atau Key tidak ditemukan! Pastikan VITE_SUPABASE_URL dan VITE_SUPABASE_KEY sudah diatur.");
+      return;
+    }
+
+    // Debug userAgent
+    console.log("User Agent:", navigator.userAgent);
+    console.log("Author:", this.author);
+
     await this.loadNotes();
   },
   methods: {
@@ -68,6 +77,7 @@ export default {
         if (error) throw error;
         this.loveNotes = data || [];
       } catch (error) {
+        this.errorMessage = "Gagal memuat catatan. Coba lagi nanti!";
         console.error("Gagal load love notes:", error.message);
       }
     },
@@ -75,6 +85,7 @@ export default {
       if (!this.newNote) return;
 
       this.isSubmitting = true;
+      this.errorMessage = "";
 
       try {
         const { error } = await supabase
@@ -86,6 +97,7 @@ export default {
         this.newNote = "";
         await this.loadNotes(); // Refresh list
       } catch (error) {
+        this.errorMessage = "Gagal menyimpan catatan. Coba lagi!";
         console.error("Error menyimpan catatan:", error.message);
         alert("Gagal menyimpan catatan: " + error.message);
       } finally {
@@ -104,6 +116,13 @@ export default {
 h1 {
   color: #ff69b4;
   font-size: 28px;
+}
+.error-message {
+  color: red;
+  background-color: #ffe6e6;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
 }
 .note-form {
   display: flex;
