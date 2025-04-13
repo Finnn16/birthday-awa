@@ -111,7 +111,7 @@ export default {
   data() {
     return {
       challenges: {
-        '14-04-2025': [
+        '13-04-2025': [
           { 
             text: "Bikin JJ berdua terus up di story ig kamu",
             category: "Fun",
