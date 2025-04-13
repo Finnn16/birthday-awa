@@ -16,7 +16,7 @@
         </button>
         <div class="lyrics-display">
           <p class="typing-lyrics" 
-          :class="{ 'finished': isTypingFinished }">{{ displayedLyrics }}</p>
+             :class="{ 'finished': isTypingFinished }">{{ displayedLyrics }}</p>
         </div>
       </div>
       <div class="player-stats-container">
@@ -24,18 +24,15 @@
           <div class="level-badge">
             Level {{ currentLevelInfo.level }}: {{ currentLevelInfo.name }}
           </div>
-          
           <div class="points-display">
             Total Points: {{ playerStats.totalPoints }}
           </div>
-          
           <div class="level-progress">
             <div 
               class="progress-bar" 
               :style="{ width: `${progressToNextLevel}%` }"
             ></div>
           </div>
-          
           <div v-if="nextLevelInfo" class="next-level-info">
             <p>Next Level: {{ nextLevelInfo.name }}</p>
             <p>Hadiah 1: {{ nextLevelInfo.reward }}</p>
@@ -44,20 +41,15 @@
         </div>
       </div>
       
-      <h2 class="challenge-title">Goal : Agar Makin Asik Jeu mwehehehe</h2>
+      <h2 class="challenge-title">Goal: Agar Makin Asik Jeu mwehehehe</h2>
       
-      <div v-if="!isValidTime" class="challenge-inactive">
-        <p>SABAARRR!!! Misi nya cuman ada di jam <br> 09:00 - 21:00 WIB</p>
-        <p>SABAR YAAA CINTAKUUU XIXIXIXIXIXI  </p>
-      </div>
-      
-      <div v-else-if="!isValidPeriod" class="challenge-inactive">
-        <p>Challenges are only available from 09-03-2025 to 16-03-2025</p>
+      <div v-if="!isValidPeriod" class="challenge-inactive">
+        <p>Challenges are only available from 07-04-2025 to 13-04-2025</p>
       </div>
       
       <div v-else class="challenges-content">
         <div 
-          v-for="(challenge, index) in todayChallenges" 
+          v-for="(challenge, index) in weeklyChallenges" 
           :key="index" 
           class="challenge-item"
         >
@@ -69,7 +61,6 @@
             <div class="challenge-category">
               <span class="pixel-tag">{{ challenge.category }}</span>
             </div>
-            
             <div class="challenge-difficulty">
               <span class="pixel-difficulty">
                 Level: 
@@ -116,179 +107,51 @@
 
 <script>
 export default {
-  name: 'RomanticDailyChallenge',
+  name: 'RomanticWeeklyChallenge',
   data() {
     return {
       challenges: {
-        '09-03-2025': [
+        '07-04-2025': [
           { 
-            text: "Ceritakan First Impression dan Berikan 3 Hal Yang Langsung Membuat Kamu Berpikir (Dia Orangnya)",
-            category: "Memory Lane",
-            difficulty: 1,
-            completed: false
-          },
-          { 
-            text: "Upload 1 Foto Pasanganmu di Story Dengan Lagu Apapun",
-            category: "Create Memory",
-            difficulty: 2,
-            completed: false
-          },
-          { 
-            text: "Apresiasi Pasangan Kamu Tentang Apapun Itu",
-            category: "Love Language",
-            difficulty: 2,
-            completed: false
-          }
-        ],
-        '10-03-2025': [
-          { 
-            text: "Bagikan Minimal 3 Momen Berkesan Kalian",
-            category: "Memory Lane",
-            difficulty: 1,
-            completed: false
-          },
-          { 
-            text: "Rekam Video Singkat Terkait Kegiatan Hari Ini",
-            category: "Having Fun",
-            difficulty: 3,
-            completed: false
-          },
-          { 
-            text: "Diskusikan Keberatan Anda Tentang Hubungan",
-            category: "Future Planning",
-            difficulty: 4,
-            completed: false
-          }
-        ],
-        '11-03-2025': [
-          { 
-            text: "Buatkan atau kirimkan pasanganmu makanan",
-            category: "Bounding",
-            difficulty: 4,
-            completed: false
-          },
-          { 
-            text: "Kirimkan 5 Foto dan Video kamu hari ini",
-            category: "Bounding",
-            difficulty: 3,
-            completed: false
-          },
-          { 
-            text: "Sebutkan beberapa barang Wishlist kamu",
-            category: "Planning",
-            difficulty: 2,
-            completed: false
-          }
-        ],
-        '12-03-2025': [
-          { 
-            text: "Develop a secret communication code only you two understand",
-            category: "Connection",
-            difficulty: 3,
-            completed: false
-          },
-          { 
-            text: "Share a detailed timeline of your relationship's most significant moments",
-            category: "Memory Lane",
-            difficulty: 2,
-            completed: false
-          },
-          { 
-            text: "Plan a series of surprise gestures for the upcoming months",
-            category: "Acts of Love",
-            difficulty: 4,
-            completed: false
-          }
-        ],
-        '13-03-2025': [
-          { 
-            text: "Buat plan budgeting date dengan modal 100k untuk 2 orang",
+            text: "Plan a special date night with a budget of 100k for two",
             category: "Planning",
             difficulty: 4,
             completed: false
           },
           { 
-            text: "Tuliskan 5 hal yang ingin kamu lakukan bersama di masa depan",
-            category: "Future Memories",
-            difficulty: 2,
-            completed: false
-          },
-          { 
-            text: "Tulis pesan cinta pendek (maksimal 50 kata) dan kirim via teks atau gambar, lalu baca bersama di call.",
+            text: "Write and share a short love letter (max 50 words) together",
             category: "Bonding",
             difficulty: 2,
             completed: false
-          }
-        ],
-        '14-03-2025': [
+          },
           { 
-            text: "Buatkan pasanganmu playlist lagu favoritmu",
+            text: "Create a playlist of 5 songs that remind you of each other",
             category: "Fun",
             difficulty: 2,
             completed: false
           },
           { 
-            text: "Buat story apresiasi pasanganmu",
-            category: "Word Of Affirmation",
-            difficulty: 4,
+            text: "Share 3 memorable moments from your relationship",
+            category: "Memory Lane",
+            difficulty: 1,
             completed: false
           },
           { 
-            text: "Buat perencanaan evaluasi hubungan dan strategi masa depan",
-            category: "Strategic Love",
-            difficulty: 4,
-            completed: false
-          }
-        ],
-        '15-03-2025': [
-          { 
-            text: "Develop a secret romantic communication ritual",
-            category: "Intimacy",
-            difficulty: 3,
-            completed: false
-          },
-          { 
-            text: "Create a joint vision board for your shared dreams",
+            text: "Discuss and list 5 future goals you want to achieve together",
             category: "Future Planning",
-            difficulty: 2,
-            completed: false
-          },
-          { 
-            text: "Write and exchange letters to your future selves as a couple",
-            category: "Reflection",
-            difficulty: 4,
-            completed: false
-          }
-        ],
-        '16-03-2025': [
-          { 
-            text: "Compile a comprehensive love language guide for each other",
-            category: "Communication",
             difficulty: 3,
-            completed: false
-          },
-          { 
-            text: "Create a digital memory book of your relationship's highlights",
-            category: "Memory Celebration",
-            difficulty: 2,
-            completed: false
-          },
-          { 
-            text: "Design a mutual personal and relationship growth plan",
-            category: "Personal Development",
-            difficulty: 4,
             completed: false
           }
         ]
       },
       completedChallenges: [],
-      todayChallenges: [],
+      weeklyChallenges: [],
       currentIndonesiaTime: null,
       playerStats: {
-        totalPoints: 16,
-        currentLevel: 1,
+        totalPoints: 26,
+        currentLevel: 2,
         levelInfo: [
-        { 
+          { 
             level: 0, 
             name: "PDKT", 
             minPoints: 0, 
@@ -330,7 +193,7 @@ export default {
           }
         ]
       },
-      dailyChallengesStatus: {},
+      weeklyChallengesStatus: {},
       isMusicPlaying: false,
       startTime: 35,
       isTypingFinished: false,
@@ -345,10 +208,10 @@ export default {
       if (!this.isMusicPlaying) {
         audio.currentTime = this.startTime;
         audio.play();
-        this.typeLyrics(); // Mulai efek ketik saat musik diputar
+        this.typeLyrics();
       } else {
         audio.pause();
-        this.displayedLyrics = this.fullLyrics; // Tampilkan semua lirik saat pause
+        this.displayedLyrics = this.fullLyrics;
         this.isTypingFinished = true;
       }
       this.isMusicPlaying = !this.isMusicPlaying;
@@ -357,11 +220,9 @@ export default {
       if (this.typingInterval) {
         clearInterval(this.typingInterval);
       }
-
       this.displayedLyrics = "";
       this.isTypingFinished = false;
       let charIndex = 0;
-
       this.typingInterval = setInterval(() => {
         if (charIndex < this.fullLyrics.length) {
           this.displayedLyrics += this.fullLyrics[charIndex];
@@ -377,222 +238,159 @@ export default {
       }, this.typingSpeed);
     },
     getIndonesiaTime() {
-      const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }))
-      this.currentIndonesiaTime = now
-      return now
+      const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+      this.currentIndonesiaTime = now;
+      return now;
     },
-    setTodayChallenges() {
-      const todayKey = this.todayKey
-      this.todayChallenges = this.challenges[todayKey] || []
+    setWeeklyChallenges() {
+      const weekKey = this.weekKey;
+      this.weeklyChallenges = this.challenges[weekKey] || [];
     },
     loadCompletedChallenges() {
-      const saved = localStorage.getItem('completedChallenges')
+      const saved = localStorage.getItem('completedChallenges');
       if (saved) {
-        this.completedChallenges = JSON.parse(saved)
+        this.completedChallenges = JSON.parse(saved);
       }
     },
     loadPlayerStats() {
-      const savedStats = localStorage.getItem('playerStats')
+      const savedStats = localStorage.getItem('playerStats');
       if (savedStats) {
-        this.playerStats = JSON.parse(savedStats)
+        this.playerStats = JSON.parse(savedStats);
       }
     },
     savePlayerStats() {
-      localStorage.setItem('playerStats', JSON.stringify(this.playerStats))
+      localStorage.setItem('playerStats', JSON.stringify(this.playerStats));
     },
     updatePlayerPoints(difficulty) {
-      // Tambahkan poin sesuai difficulty challenge
-      this.playerStats.totalPoints += difficulty
-      
-      // Update level jika perlu
-      this.updatePlayerLevel()
-      
-      // Simpan stats
-      this.savePlayerStats()
+      this.playerStats.totalPoints += difficulty;
+      this.updatePlayerLevel();
+      this.savePlayerStats();
     },
     updatePlayerLevel() {
       const currentLevel = this.playerStats.levelInfo.find(
         level => this.playerStats.totalPoints >= level.minPoints && 
                  this.playerStats.totalPoints <= level.maxPoints
-      )
-      
+      );
       if (currentLevel) {
-        this.playerStats.currentLevel = currentLevel.level
+        this.playerStats.currentLevel = currentLevel.level;
       }
     },
     completeChallenge(index) {
-      if (!this.todayChallenges[index]) return
-
-      const challenge = this.todayChallenges[index]
-      
-      // Mark challenge as completed
-      challenge.completed = true
-
-      // Update player points
-      this.updatePlayerPoints(challenge.difficulty)
-
-      // Add to completed challenges
+      if (!this.weeklyChallenges[index]) return;
+      const challenge = this.weeklyChallenges[index];
+      challenge.completed = true;
+      const weekKey = this.weekKey;
+      if (!this.weeklyChallengesStatus[weekKey]) {
+        this.weeklyChallengesStatus[weekKey] = {};
+      }
+      if (!this.weeklyChallengesStatus[weekKey][challenge.text]) {
+        this.updatePlayerPoints(challenge.difficulty);
+        this.weeklyChallengesStatus[weekKey][challenge.text] = true;
+      }
       this.completedChallenges.unshift({
         text: challenge.text,
         completed: true,
         points: challenge.difficulty,
         date: this.getIndonesiaTime().toISOString()
-      })
-      
-      // Save challenges
-      this.saveCompletedChallenges()
+      });
+      this.saveWeeklyChallengesStatus();
+      this.saveCompletedChallenges();
     },
     saveCompletedChallenges() {
-      localStorage.setItem('completedChallenges', JSON.stringify(this.completedChallenges))
+      localStorage.setItem('completedChallenges', JSON.stringify(this.completedChallenges));
     },
-    loadDailyChallengesStatus() {
-      const saved = localStorage.getItem('dailyChallengesStatus')
+    loadWeeklyChallengesStatus() {
+      const saved = localStorage.getItem('weeklyChallengesStatus');
       if (saved) {
-        this.dailyChallengesStatus = JSON.parse(saved)
+        this.weeklyChallengesStatus = JSON.parse(saved);
       }
     },
-
-    // Metode untuk menyimpan status challenges harian
-    saveDailyChallengesStatus() {
-      localStorage.setItem('dailyChallengesStatus', JSON.stringify(this.dailyChallengesStatus))
+    saveWeeklyChallengesStatus() {
+      localStorage.setItem('weeklyChallengesStatus', JSON.stringify(this.weeklyChallengesStatus));
     },
-
-    // Modifikasi metode setTodayChallenges
-    setTodayChallenges() {
-      const todayKey = this.todayKey
-      
-      // Cek apakah challenges untuk hari ini sudah pernah dimuat sebelumnya
-      const savedDayStatus = this.dailyChallengesStatus[todayKey]
-      
-      // Ambil challenges untuk hari ini
-      let todayChallenges = this.challenges[todayKey] || []
-      
-      // Jika sudah ada status sebelumnya, gunakan status tersebut
-      if (savedDayStatus) {
-        todayChallenges = todayChallenges.map(challenge => ({
+    setWeeklyChallenges() {
+      const weekKey = this.weekKey;
+      let weeklyChallenges = this.challenges[weekKey] || [];
+      const savedWeekStatus = this.weeklyChallengesStatus[weekKey];
+      if (savedWeekStatus) {
+        weeklyChallenges = weeklyChallenges.map(challenge => ({
           ...challenge,
-          completed: savedDayStatus[challenge.text] || false
-        }))
+          completed: savedWeekStatus[challenge.text] || false
+        }));
       }
-      
-      this.todayChallenges = todayChallenges
-    },
-
-    completeChallenge(index) {
-      if (!this.todayChallenges[index]) return
-
-      const challenge = this.todayChallenges[index]
-      
-      // Mark challenge as completed
-      challenge.completed = true
-
-      // Update player points hanya jika belum pernah di-complete
-      const todayKey = this.todayKey
-      
-      // Inisialisasi status challenges untuk hari ini jika belum ada
-      if (!this.dailyChallengesStatus[todayKey]) {
-        this.dailyChallengesStatus[todayKey] = {}
-      }
-
-      // Cek apakah challenge sudah pernah diselesaikan sebelumnya
-      if (!this.dailyChallengesStatus[todayKey][challenge.text]) {
-        // Update player points
-        this.updatePlayerPoints(challenge.difficulty)
-        
-        // Tandai challenge sebagai sudah diselesaikan
-        this.dailyChallengesStatus[todayKey][challenge.text] = true
-      }
-
-      // Add to completed challenges
-      this.completedChallenges.unshift({
-        text: challenge.text,
-        completed: true,
-        points: challenge.difficulty,
-        date: this.getIndonesiaTime().toISOString()
-      })
-      
-      // Simpan status challenges
-      this.saveDailyChallengesStatus()
-      
-      // Simpan challenges
-      this.saveCompletedChallenges()
-    },
+      this.weeklyChallenges = weeklyChallenges;
+    }
   },
   computed: {
-    isValidTime() {
-      if (!this.currentIndonesiaTime) return false
-      const hours = this.currentIndonesiaTime.getHours()
-      return hours >= 9 && hours < 21
-    },  
     isValidPeriod() {
-      if (!this.currentIndonesiaTime) return false
-      
-      const currentYear = this.currentIndonesiaTime.getFullYear()
-      const currentMonth = this.currentIndonesiaTime.getMonth() + 1
-      const currentDate = this.currentIndonesiaTime.getDate()
-      
+      if (!this.currentIndonesiaTime) return false;
+      const currentYear = this.currentIndonesiaTime.getFullYear();
+      const currentMonth = this.currentIndonesiaTime.getMonth() + 1;
+      const currentDate = this.currentIndonesiaTime.getDate();
       return (currentYear === 2025) && 
-             (currentMonth === 3) && 
-             (currentDate >= 9 && currentDate <= 16)
+             (currentMonth === 4) && 
+             (currentDate >= 7 && currentDate <= 13);
     },
-    todayKey() {
-      if (!this.currentIndonesiaTime) return ''
-      const day = String(this.currentIndonesiaTime.getDate()).padStart(2, '0')
-      const month = String(this.currentIndonesiaTime.getMonth() + 1).padStart(2, '0')
-      const year = this.currentIndonesiaTime.getFullYear()
-      return `${day}-${month}-${year}`
+    weekKey() {
+      if (!this.currentIndonesiaTime) return '';
+      const date = new Date(this.currentIndonesiaTime);
+      // Set to Monday of the current week
+      const dayOfWeek = date.getDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      date.setDate(date.getDate() + diff);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
     },
     currentLevelInfo() {
       return this.playerStats.levelInfo.find(
         level => this.playerStats.totalPoints >= level.minPoints && 
                  this.playerStats.totalPoints <= level.maxPoints
-      ) || this.playerStats.levelInfo[0]
+      ) || this.playerStats.levelInfo[0];
     },
     nextLevelInfo() {
       const currentLevelIndex = this.playerStats.levelInfo.findIndex(
         level => level.level === this.currentLevelInfo.level
-      )
-      return this.playerStats.levelInfo[currentLevelIndex + 1] || null
+      );
+      return this.playerStats.levelInfo[currentLevelIndex + 1] || null;
     },
     progressToNextLevel() {
-      const currentLevel = this.currentLevelInfo
-      const nextLevel = this.nextLevelInfo
-      
-      if (!nextLevel) return 100 // Max level
-      
-      const totalLevelRange = nextLevel.minPoints - currentLevel.minPoints
-      const currentProgress = this.playerStats.totalPoints - currentLevel.minPoints
-      
-      return Math.min((currentProgress / totalLevelRange) * 100, 100)
+      const currentLevel = this.currentLevelInfo;
+      const nextLevel = this.nextLevelInfo;
+      if (!nextLevel) return 100;
+      const totalLevelRange = nextLevel.minPoints - currentLevel.minPoints;
+      const currentProgress = this.playerStats.totalPoints - currentLevel.minPoints;
+      return Math.min((currentProgress / totalLevelRange) * 100, 100);
     }
   },
   mounted() {
-    this.getIndonesiaTime()
+    this.getIndonesiaTime();
     this.$nextTick(() => {
-      this.loadCompletedChallenges()
-      this.loadPlayerStats()
-      this.loadDailyChallengesStatus()
-      this.setTodayChallenges()
-      this.toggleMusic()
-      this.typeLyrics()
-    })
+      this.loadCompletedChallenges();
+      this.loadPlayerStats();
+      this.loadWeeklyChallengesStatus();
+      this.setWeeklyChallenges();
+      this.toggleMusic();
+      this.typeLyrics();
+    });
   }
 }
 </script>
 
 <style scoped>
+/* Same styles as original */
 .music-player {
   margin-bottom: 25px;
   text-align: center;
   position: relative;
   padding: 20px;
-  background: linear-gradient(135deg, #ffdde1, #ffebf0); /* Gradien lembut */
+  background: linear-gradient(135deg, #ffdde1, #ffebf0);
   border: 4px solid #ff69b4;
   border-radius: 12px;
-  box-shadow: 0 6px 12px rgba(255, 105, 180, 0.3); /* Bayangan pink */
+  box-shadow: 0 6px 12px rgba(255, 105, 180, 0.3);
 }
 
-/* Tombol Musik */
 .music-btn {
   background-color: #ff69b4;
   padding: 10px 20px;
@@ -603,7 +401,7 @@ export default {
 
 .music-btn.playing {
   background-color: #ff1493;
-  transform: scale(1.05); /* Efek membesar saat diputar */
+  transform: scale(1.05);
 }
 
 .music-btn:hover {
@@ -611,12 +409,11 @@ export default {
   box-shadow: 0 4px 8px rgba(255, 20, 147, 0.4);
 }
 
-/* Kontainer Lirik */
 .lyrics-display {
   margin-top: 20px;
   padding: 15px;
   background-color: rgba(255, 255, 255, 0.8);
-  border: 2px dashed #ff1493; /* Garis putus-putus romantis */
+  border: 2px dashed #ff1493;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(255, 20, 147, 0.2);
 }
@@ -626,12 +423,12 @@ export default {
   font-size: 16px;
   color: #ff1493;
   white-space: pre-wrap;
-  border-right: 3px solid #ff69b4; 
+  border-right: 3px solid #ff69b4;
   animation: blink 0.75s step-end infinite;
 }
 
 .finished {
-  border-right: none; 
+  border-right: none;
 }
 
 @keyframes blink {
@@ -639,16 +436,13 @@ export default {
   50% { border-color: #ff69b4; }
 }
 
-/* Responsivitas */
 @media (max-width: 678px) {
   .music-player {
     padding: 15px;
   }
-  
   .typing-lyrics {
     font-size: 14px;
   }
-  
   .music-btn {
     padding: 8px 16px;
     font-size: 12px;
@@ -814,16 +608,13 @@ export default {
   .challenge-wrapper {
     padding: 20px;
   }
-
   .challenge-text {
     font-size: 14px;
   }
-
   .challenge-details {
     flex-direction: column;
     align-items: center;
   }
-
   .challenge-category, .challenge-difficulty {
     margin-bottom: 10px;
   }
