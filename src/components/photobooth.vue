@@ -24,7 +24,7 @@
         <div v-if="isCapturing" class="timer">{{ countdown }} detik</div>
 
         <button @click="startPhotobooth" :disabled="isCapturing" class="capture-btn">
-          {{ isCapturing ? "Sedang Ambil Foto..." : "Ambil Foto!" }}
+          {{ isCapturing ? sufer"Sedang Ambil Foto..." : "Ambil Foto!" }}
         </button>
         <button v-if="photos.length === 3 && !isCapturing" @click="saveAndDownload" class="download-btn">
           Simpan & Download
@@ -74,7 +74,7 @@ export default {
       galleryPhotos: [],
       isSaving: false,
       errorMessage: '',
-      showErrorPopup: false, // State untuk pop-up
+      showErrorPopup: false,
     };
   },
   watch: {
@@ -204,8 +204,10 @@ export default {
         // Convert data URL ke Blob
         const response = await fetch(dataUrl);
         const blob = await response.blob();
+        console.log("Blob size:", blob.size, "bytes");
 
         // Upload ke Supabase Storage
+        console.log("Uploading to storage...");
         const { error: uploadError } = await supabase.storage
           .from('photobooth')
           .upload(`photos/${fileName}`, blob, {
@@ -213,10 +215,11 @@ export default {
           });
 
         if (uploadError) {
-          throw new Error(`Gagal upload foto ke storage: ${uploadError.message}`);
+          throw new Error(`Gagal upload ke storage: ${uploadError.message}`);
         }
 
         // Ambil public URL
+        console.log("Getting public URL...");
         const { data: publicUrlData } = supabase.storage
           .from('photobooth')
           .getPublicUrl(`photos/${fileName}`);
@@ -229,13 +232,15 @@ export default {
         console.log("Public URL:", publicUrl);
 
         // Simpan metadata ke tabel
+        console.log("Inserting metadata to table...");
         const { error: dbError } = await supabase
           .from('photos')
           .insert([{ url: publicUrl, file_name: fileName, created_at: new Date().toISOString() }]);
 
         if (dbError) {
+          console.error("Database error:", dbError);
           await supabase.storage.from('photobooth').remove([`photos/${fileName}`]);
-          throw new Error(`Gagal simpan metadata ke tabel: ${dbError.message}`);
+          throw new Error(`Gagal menyimpan metadata: ${dbError.message}`);
         }
 
         // Download foto
@@ -250,7 +255,7 @@ export default {
         alert("Foto berhasil disimpan dan di-download!");
       } catch (error) {
         console.error("Error saat save/download:", error);
-        this.errorMessage = "Gagal menyimpan foto: " + error.message;
+        this.errorMessage = error.message;
         this.showErrorPopup = true;
       } finally {
         this.isSaving = false;
@@ -258,6 +263,7 @@ export default {
     },
     async loadGallery() {
       try {
+        console.log("Loading gallery...");
         const { data, error } = await supabase
           .from('photos')
           .select('*')
@@ -299,7 +305,6 @@ export default {
 .photobooth {
   padding: 20px;
 }
-/* Pop-up Styling */
 .error-popup-overlay {
   position: fixed;
   top: 0;
