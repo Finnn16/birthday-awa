@@ -1,6 +1,7 @@
 <!-- Photobooth.vue -->
 <template>
   <div class="photobooth">
+    <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
     <!-- Preview Section -->
     <div class="preview-section" v-if="photos.length === 3 && !isCapturing">
       <canvas ref="previewCanvas" class="preview-canvas"></canvas>
@@ -63,8 +64,9 @@ export default {
       countdown: 5,
       showFlash: false,
       animatePhoto: null,
-      galleryPhotos: [], // Foto dari Supabase
+      galleryPhotos: [],
       isSaving: false,
+      errorMessage: '',
     };
   },
   watch: {
@@ -83,7 +85,7 @@ export default {
         this.$refs.video.srcObject = this.stream;
       } catch (err) {
         console.error("Gagal akses kamera:", err);
-        alert("Gagal akses kamera. Cek izin kamera ya!");
+        this.errorMessage = "Gagal akses kamera. Cek izin kamera ya!";
       }
     },
     async takePhoto() {
@@ -103,6 +105,7 @@ export default {
       if (this.isCapturing) return;
       this.isCapturing = true;
       this.photos = [];
+      this.errorMessage = '';
 
       for (let i = 0; i < 3; i++) {
         this.countdown = 5;
@@ -180,6 +183,7 @@ export default {
     async saveAndDownload() {
       if (this.isSaving) return;
       this.isSaving = true;
+      this.errorMessage = '';
 
       try {
         const canvas = this.$refs.previewCanvas;
@@ -198,13 +202,20 @@ export default {
           });
 
         if (uploadError) {
-          throw new Error(`Gagal upload foto: ${uploadError.message}`);
+          throw new Error(`Gagal upload foto ke storage: ${uploadError.message}`);
         }
 
         // Ambil public URL
-        const { publicUrl } = supabase.storage
+        const { data: publicUrlData } = supabase.storage
           .from('photobooth')
           .getPublicUrl(`photos/${fileName}`);
+
+        const publicUrl = publicUrlData.publicUrl;
+        if (!publicUrl) {
+          throw new Error("Gagal mendapatkan public URL");
+        }
+
+        console.log("Public URL:", publicUrl);
 
         // Simpan metadata ke tabel
         const { error: dbError } = await supabase
@@ -212,7 +223,9 @@ export default {
           .insert([{ url: publicUrl, file_name: fileName, created_at: new Date().toISOString() }]);
 
         if (dbError) {
-          throw new Error(`Gagal simpan metadata: ${dbError.message}`);
+          // Hapus file dari storage kalau insert gagal
+          await supabase.storage.from('photobooth').remove([`photos/${fileName}`]);
+          throw new Error(`Gagal simpan metadata ke tabel: ${dbError.message}`);
         }
 
         // Download foto
@@ -227,7 +240,7 @@ export default {
         alert("Foto berhasil disimpan dan di-download!");
       } catch (error) {
         console.error("Error saat save/download:", error);
-        alert("Gagal menyimpan foto: " + error.message);
+        this.errorMessage = "Gagal menyimpan foto: " + error.message;
       } finally {
         this.isSaving = false;
       }
@@ -242,6 +255,7 @@ export default {
         this.galleryPhotos = data || [];
       } catch (error) {
         console.error("Gagal load galeri:", error);
+        this.errorMessage = "Gagal memuat galeri: " + error.message;
       }
     },
     stopCamera() {
@@ -251,6 +265,10 @@ export default {
     },
   },
   async mounted() {
+    if (!supabaseUrl || !supabaseKey) {
+      this.errorMessage = "Gagal terhubung ke server. Cek konfigurasi!";
+      return;
+    }
     await this.startCamera();
     await this.loadGallery();
   },
@@ -263,6 +281,14 @@ export default {
 <style scoped>
 .photobooth {
   padding: 20px;
+}
+.error-message {
+  color: red;
+  background-color: #ffe6e6;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+  text-align: center;
 }
 .preview-section {
   display: flex;
