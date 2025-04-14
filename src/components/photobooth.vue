@@ -202,21 +202,24 @@ export default {
         const fileName = `photobooth_${Date.now()}.png`;
 
         // Convert data URL ke Blob
+        console.log("Converting data URL to Blob...");
         const response = await fetch(dataUrl);
         const blob = await response.blob();
-        console.log("Blob size:", blob.size, "bytes");
+        console.log("Blob created, size:", blob.size, "bytes");
 
         // Upload ke Supabase Storage
-        console.log("Uploading to storage...");
-        const { error: uploadError } = await supabase.storage
+        console.log("Uploading to storage bucket 'photobooth'...");
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('photobooth')
           .upload(`photos/${fileName}`, blob, {
             contentType: 'image/png',
           });
 
         if (uploadError) {
+          console.error("Upload error:", uploadError);
           throw new Error(`Gagal upload ke storage: ${uploadError.message}`);
         }
+        console.log("Upload successful:", uploadData);
 
         // Ambil public URL
         console.log("Getting public URL...");
@@ -228,11 +231,10 @@ export default {
         if (!publicUrl) {
           throw new Error("Gagal mendapatkan public URL");
         }
-
         console.log("Public URL:", publicUrl);
 
         // Simpan metadata ke tabel
-        console.log("Inserting metadata to table...");
+        console.log("Inserting metadata to table 'photos'...");
         const { error: dbError } = await supabase
           .from('photos')
           .insert([{ url: publicUrl, file_name: fileName, created_at: new Date().toISOString() }]);
@@ -242,8 +244,10 @@ export default {
           await supabase.storage.from('photobooth').remove([`photos/${fileName}`]);
           throw new Error(`Gagal menyimpan metadata: ${dbError.message}`);
         }
+        console.log("Metadata saved successfully");
 
         // Download foto
+        console.log("Downloading photo...");
         const link = document.createElement("a");
         link.href = dataUrl;
         link.download = fileName;
@@ -270,6 +274,7 @@ export default {
           .order('created_at', { ascending: false });
         if (error) throw error;
         this.galleryPhotos = data || [];
+        console.log("Gallery loaded:", this.galleryPhotos.length, "photos");
       } catch (error) {
         console.error("Gagal load galeri:", error);
         this.errorMessage = "Gagal memuat galeri: " + error.message;
@@ -374,7 +379,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 231, 0.9);
   animation: flash 0.3s ease-out;
 }
 @keyframes flash {
