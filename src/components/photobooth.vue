@@ -236,45 +236,54 @@ export default {
       );
 
       // Cek apakah ada gambar yang valid
-      if (images.length === 0) {
-        throw new Error("Tidak ada gambar valid untuk dirender");
+      if (images.length !== 3) {
+        throw new Error("Jumlah gambar tidak sesuai, harap ambil 3 foto");
       }
 
+      // Dimensi foto
       const photoWidth = images[0].width;
       const photoHeight = images[0].height;
-      const padding = 10;
-      const textSpaceHeight = 100;
-      canvas.width = photoWidth + 40;
-      canvas.height = photoHeight * 3 + padding * 2 + textSpaceHeight * 2;
+      const padding = 10; // Jarak antar foto
+      const textSpaceHeight = 50; // Ruang untuk teks di atas dan bawah
+      const borderWidth = 20; // Lebar border pink
+
+      // Atur dimensi canvas
+      canvas.width = photoWidth + borderWidth * 2; // Lebar canvas = lebar foto + border di kedua sisi
+      canvas.height = photoHeight * 3 + padding * 2 + textSpaceHeight * 2 + borderWidth * 2; // Tinggi canvas = tinggi 3 foto + padding + teks + border
 
       console.log("Dimensi canvas:", canvas.width, "x", canvas.height);
 
+      // Bersihkan canvas dan beri background putih
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      // Gambar border pink
       ctx.strokeStyle = "#ff69b4";
-      ctx.lineWidth = 20;
-      ctx.strokeRect(0, 0, canvas.width, canvas.height);
+      ctx.lineWidth = borderWidth;
+      ctx.strokeRect(borderWidth / 2, borderWidth / 2, canvas.width - borderWidth, canvas.height - borderWidth);
 
+      // Gambar tiga foto dengan posisi yang benar
       images.forEach((img, index) => {
-        const yPosition = textSpaceHeight + index * (photoHeight + padding);
+        const yPosition = borderWidth + textSpaceHeight + index * (photoHeight + padding);
         console.log("Menggambar gambar", index, "di y:", yPosition);
-        ctx.drawImage(img, 20, yPosition, photoWidth, photoHeight);
+        ctx.drawImage(img, borderWidth, yPosition, photoWidth, photoHeight);
       });
 
+      // Tambahkan teks "Happy Birthday Awa Najwa" di atas
       ctx.fillStyle = "#ff69b4";
       ctx.font = "bold 36px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("Happy Birthday Awliya Najwa", canvas.width / 2, textSpaceHeight / 2);
+      ctx.fillText("Happy Birthday Awa Najwa", canvas.width / 2, borderWidth + textSpaceHeight / 2);
 
+      // Tambahkan tanggal di bawah
       const today = new Date().toLocaleDateString("id-ID", {
         day: "numeric",
         month: "long",
         year: "numeric",
       });
-      ctx.font = "bold 40px Arial";
-      ctx.fillText(today, canvas.width / 2, canvas.height - textSpaceHeight / 2);
+      ctx.font = "bold 30px Arial";
+      ctx.fillText(today, canvas.width / 2, canvas.height - borderWidth - textSpaceHeight / 2);
 
       console.log("Pratinjau berhasil dirender");
       this.isCanvasReady = true;
