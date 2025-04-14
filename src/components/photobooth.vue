@@ -14,6 +14,12 @@
       <canvas ref="previewCanvas" class="preview-canvas"></canvas>
     </div>
 
+    <!-- Debug Preview (opsional untuk debugging) -->
+    <div v-if="photos.length > 0" class="debug-preview">
+      <h3>Debug: Foto Mentah</h3>
+      <img v-for="(photo, index) in photos" :key="index" :src="photo" style="max-width: 200px; margin: 10px;" />
+    </div>
+
     <!-- Video dan Capture Section -->
     <div class="container">
       <div class="video-section">
@@ -44,7 +50,10 @@
     <!-- Galeri Foto dari Supabase -->
     <div class="gallery-section">
       <h2>Galeri Momen Kita 💕</h2>
-      <div v-if="galleryPhotos.length">
+      <div v-if="isGalleryLoading">
+        <p>Memuat galeri...</p>
+      </div>
+      <div v-else-if="galleryPhotos.length">
         <div class="gallery-grid">
           <div v-for="photo in galleryPhotos" :key="photo.id" class="gallery-item">
             <img :src="photo.url" class="gallery-photo" @error="handleImageError(photo)" />
@@ -81,33 +90,39 @@ export default {
       errorMessage: '',
       showErrorPopup: false,
       isCanvasReady: false,
+      isGalleryLoading: true,
     };
   },
   watch: {
     photos(newPhotos) {
       if (newPhotos.length === 3 && !this.isCapturing) {
-        this.$nextTick(async () => {
-          console.log("Photos updated, rendering preview...");
+        setTimeout(async () => {
+          console.log("Photos diperbarui, merender pratinjau...");
           try {
             await this.renderPreview();
-            this.isCanvasReady = true;
-            console.log("Canvas ready for download");
+            console.log("Canvas siap untuk di-download");
           } catch (error) {
-            console.error("Failed to render preview:", error);
+            console.error("Gagal merender pratinjau:", error);
             this.isCanvasReady = false;
-            this.errorMessage = "Gagal merender preview. Download foto mentah sebagai alternatif.";
+            this.errorMessage = "Gagal merender pratinjau. Download foto mentah sebagai alternatif.";
             this.showErrorPopup = true;
           }
-        });
+        }, 100); // Penundaan 100ms untuk memastikan DOM siap
       }
     },
   },
   methods: {
     async startCamera() {
       try {
-        this.stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: "user",
+          },
+        });
         this.$refs.video.srcObject = this.stream;
-        console.log("Camera started, video dimensions:", this.$refs.video.videoWidth, "x", this.$refs.video.videoHeight);
+        console.log("Kamera dimulai, dimensi video:", this.$refs.video.videoWidth, "x", this.$refs.video.videoHeight);
       } catch (err) {
         console.error("Gagal akses kamera:", err);
         this.errorMessage = "Gagal akses kamera. Cek izin kamera ya!";
@@ -117,24 +132,32 @@ export default {
     async takePhoto() {
       const video = this.$refs.video;
       if (!video.videoWidth || !video.videoHeight) {
-        console.error("Video feed not ready, dimensions:", video.videoWidth, "x", video.videoHeight);
+        console.error("Umpan video belum siap, dimensi:", video.videoWidth, "x", video.videoHeight);
         throw new Error("Kamera belum siap. Coba lagi ya!");
       }
+
+      // Tunggu hingga video benar-benar siap
+      await new Promise((resolve) => {
+        if (video.readyState >= 2) {
+          resolve();
+        } else {
+          video.onloadeddata = resolve;
+        }
+      });
 
       const canvas = document.createElement("canvas");
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext("2d");
 
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
+      // Gambar tanpa transformasi (karena video sudah dibalik via CSS)
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       const dataUrl = canvas.toDataURL("image/png");
-      console.log("Photo captured, data URL length:", dataUrl.length);
+      console.log("Foto diambil, panjang data URL:", dataUrl.length);
 
       if (dataUrl.length < 1000) {
-        console.error("Captured photo is likely blank, data URL length:", dataUrl.length);
+        console.error("Foto yang diambil kemungkinan kosong, panjang data URL:", dataUrl.length);
         throw new Error("Gagal mengambil foto. Foto kosong!");
       }
 
@@ -166,7 +189,7 @@ export default {
           const photo = await this.takePhoto();
           this.photos.push(photo);
         } catch (error) {
-          console.error("Failed to capture photo:", error);
+          console.error("Gagal mengambil foto:", error);
           this.errorMessage = error.message;
           this.showErrorPopup = true;
           this.isCapturing = false;
@@ -183,12 +206,14 @@ export default {
     async renderPreview() {
       const canvas = this.$refs.previewCanvas;
       if (!canvas) {
-        console.error("Canvas not found in DOM");
-        throw new Error("Canvas not found");
+        console.error("Canvas tidak ditemukan di DOM");
+        throw new Error("Canvas tidak ditemukan");
       }
 
-      console.log("Rendering preview on canvas...");
+      console.log("Merender pratinjau di canvas...");
       const ctx = canvas.getContext("2d");
+
+      // Validasi gambar
       const images = await Promise.all(
         this.photos.map(
           (photo, index) =>
@@ -196,16 +221,24 @@ export default {
               const img = new Image();
               img.src = photo;
               img.onload = () => {
-                console.log(`Image ${index} loaded, dimensions:`, img.width, "x", img.height);
+                console.log(`Gambar ${index} dimuat, dimensi:`, img.width, "x", img.height);
+                if (img.width === 0 || img.height === 0) {
+                  reject(new Error(`Gambar ${index} memiliki dimensi nol`));
+                }
                 resolve(img);
               };
               img.onerror = () => {
-                console.error(`Failed to load image ${index}:`, photo.substring(0, 50) + "...");
-                reject(new Error(`Failed to load image ${index}`));
+                console.error(`Gagal memuat gambar ${index}:`, photo.substring(0, 50) + "...");
+                reject(new Error(`Gagal memuat gambar ${index}`));
               };
             })
         )
       );
+
+      // Cek apakah ada gambar yang valid
+      if (images.length === 0) {
+        throw new Error("Tidak ada gambar valid untuk dirender");
+      }
 
       const photoWidth = images[0].width;
       const photoHeight = images[0].height;
@@ -214,7 +247,7 @@ export default {
       canvas.width = photoWidth + 40;
       canvas.height = photoHeight * 3 + padding * 2 + textSpaceHeight * 2;
 
-      console.log("Canvas dimensions:", canvas.width, "x", canvas.height);
+      console.log("Dimensi canvas:", canvas.width, "x", canvas.height);
 
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -225,12 +258,12 @@ export default {
 
       images.forEach((img, index) => {
         const yPosition = textSpaceHeight + index * (photoHeight + padding);
-        console.log("Drawing image", index, "at y:", yPosition);
+        console.log("Menggambar gambar", index, "di y:", yPosition);
         ctx.drawImage(img, 20, yPosition, photoWidth, photoHeight);
       });
 
       ctx.fillStyle = "#ff69b4";
-      ctx.font = "bold 36px Arial"; // Ganti Tangerine ke Arial sementara
+      ctx.font = "bold 36px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("Happy Birthday Awliya Najwa", canvas.width / 2, textSpaceHeight / 2);
@@ -243,7 +276,8 @@ export default {
       ctx.font = "bold 40px Arial";
       ctx.fillText(today, canvas.width / 2, canvas.height - textSpaceHeight / 2);
 
-      console.log("Preview rendered successfully");
+      console.log("Pratinjau berhasil dirender");
+      this.isCanvasReady = true;
     },
     async saveAndDownload() {
       if (this.isSaving) return;
@@ -256,89 +290,105 @@ export default {
         let fileName = `photobooth_${Date.now()}.png`;
 
         if (this.isCanvasReady) {
-          console.log("Canvas is ready, generating data URL...");
+          console.log("Canvas siap, menghasilkan data URL...");
           const canvas = this.$refs.previewCanvas;
           if (!canvas) {
-            console.error("Canvas not found for download");
-            throw new Error("Gagal menemukan preview. Coba lagi ya!");
+            console.error("Canvas tidak ditemukan untuk di-download");
+            throw new Error("Gagal menemukan pratinjau. Coba lagi ya!");
           }
 
           dataUrl = canvas.toDataURL("image/png");
-          console.log("Data URL from canvas, length:", dataUrl.length);
+          console.log("Data URL dari canvas, panjang:", dataUrl.length);
 
           if (dataUrl.length < 1000) {
-            console.error("Canvas data URL too short, likely blank");
-            throw new Error("Preview kosong. Menggunakan foto mentah sebagai alternatif.");
+            console.warn("Data URL canvas terlalu pendek, kemungkinan kosong");
+            throw new Error("Pratinjau kosong. Menggunakan foto mentah sebagai alternatif.");
           }
         } else {
-          console.warn("Canvas not ready, using first photo as fallback...");
+          console.warn("Canvas tidak siap, menggunakan foto pertama sebagai cadangan...");
           if (!this.photos.length) {
             throw new Error("Tidak ada foto untuk di-download!");
           }
-          dataUrl = this.photos[0]; // Fallback ke foto pertama
+          dataUrl = this.photos[0];
           fileName = `photobooth_fallback_${Date.now()}.png`;
         }
 
-        // Convert data URL ke Blob
-        console.log("Converting data URL to Blob...");
-        const response = await fetch(dataUrl);
-        const blob = await response.blob();
-        console.log("Blob created, size:", blob.size, "bytes");
+        // Convert data URL ke Blob dan kompresi jika perlu
+        console.log("Mengonversi data URL ke Blob...");
+        let response = await fetch(dataUrl);
+        let blob = await response.blob();
+        console.log("Blob asli, ukuran:", blob.size, "byte");
+
+        if (blob.size > 2 * 1024 * 1024) { // Jika lebih dari 2MB
+          console.log("Mengompresi gambar...");
+          const img = new Image();
+          img.src = dataUrl;
+          await new Promise((resolve) => (img.onload = resolve));
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width * 0.7;
+          canvas.height = img.height * 0.7;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          blob = await new Promise((resolve) =>
+            canvas.toBlob(resolve, "image/jpeg", 0.8)
+          );
+          console.log("Blob terkompresi, ukuran:", blob.size, "byte");
+        }
 
         // Upload ke Supabase Storage
-        console.log("Uploading to storage bucket 'photobooth'...");
+        console.log("Mengunggah ke bucket 'photobooth'...");
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('photobooth')
           .upload(`photos/${fileName}`, blob, {
-            contentType: 'image/png',
+            contentType: blob.type,
           });
 
         if (uploadError) {
-          console.error("Upload failed:", uploadError);
-          throw new Error(`Upload ke storage gagal: ${uploadError.message}`);
+          console.error("Gagal mengunggah:", uploadError);
+          throw new Error(`Gagal mengunggah ke storage: ${uploadError.message}`);
         }
-        console.log("Upload successful:", uploadData);
+        console.log("Unggahan berhasil:", uploadData);
 
         // Ambil public URL
-        console.log("Getting public URL...");
+        console.log("Mengambil URL publik...");
         const { data: publicUrlData } = supabase.storage
           .from('photobooth')
           .getPublicUrl(`photos/${fileName}`);
 
         const publicUrl = publicUrlData.publicUrl;
         if (!publicUrl) {
-          console.error("Failed to get public URL");
-          throw new Error("Gagal mendapatkan public URL");
+          console.error("Gagal mendapatkan URL publik");
+          throw new Error("Gagal mendapatkan URL publik");
         }
-        console.log("Public URL:", publicUrl);
+        console.log("URL Publik:", publicUrl);
 
         // Simpan metadata ke tabel
-        console.log("Inserting metadata to table 'photos'...");
+        console.log("Menyisipkan metadata ke tabel 'photos'...");
         const { error: dbError } = await supabase
           .from('photos')
           .insert([{ url: publicUrl, file_name: fileName, created_at: new Date().toISOString() }]);
 
         if (dbError) {
-          console.error("Database insert failed:", dbError);
+          console.error("Gagal menyisipkan ke database:", dbError);
           await supabase.storage.from('photobooth').remove([`photos/${fileName}`]);
           throw new Error(`Gagal menyimpan metadata ke tabel: ${dbError.message}`);
         }
-        console.log("Metadata saved successfully");
+        console.log("Metadata berhasil disimpan");
 
         // Download foto
-        console.log("Downloading photo...");
+        console.log("Mengunduh foto...");
         const link = document.createElement("a");
         link.href = dataUrl;
         link.download = fileName;
         link.click();
-        console.log("Download initiated");
+        console.log("Pengunduhan dimulai");
 
         // Refresh galeri
-        console.log("Refreshing gallery...");
+        console.log("Memperbarui galeri...");
         await this.loadGallery();
-        console.log("Gallery refreshed, photos:", this.galleryPhotos);
+        console.log("Galeri diperbarui, foto:", this.galleryPhotos);
       } catch (error) {
-        console.error("Error in saveAndDownload:", error);
+        console.error("Kesalahan dalam saveAndDownload:", error);
         this.errorMessage = error.message;
         this.showErrorPopup = true;
       } finally {
@@ -347,28 +397,34 @@ export default {
     },
     async loadGallery() {
       try {
-        console.log("Loading gallery from table 'photos'...");
+        console.log("Memuat galeri dari tabel 'photos'...");
         const { data, error } = await supabase
           .from('photos')
           .select('*')
           .order('created_at', { ascending: false });
         if (error) {
-          console.error("Load gallery error:", error);
-          throw new Error(`Query failed: ${error.message}`);
+          console.error("Gagal memuat galeri:", error);
+          throw new Error(`Query gagal: ${error.message}`);
         }
-        console.log("Raw data from Supabase:", data);
-        this.galleryPhotos = data || [];
-        console.log("Gallery loaded:", this.galleryPhotos.length, "photos", this.galleryPhotos);
+        console.log("Data mentah dari Supabase:", data);
+        // Filter entri dengan URL valid
+        this.galleryPhotos = (data || []).filter(
+          (photo) => photo.url && typeof photo.url === 'string' && photo.url.startsWith('http')
+        );
+        console.log("Galeri dimuat:", this.galleryPhotos.length, "foto");
       } catch (error) {
-        console.error("Gagal load galeri:", error);
+        console.error("Gagal memuat galeri:", error);
         this.errorMessage = "Gagal memuat galeri: " + error.message;
         this.showErrorPopup = true;
+      } finally {
+        this.isGalleryLoading = false;
       }
     },
     handleImageError(photo) {
-      console.error("Failed to load image:", photo.url);
-      this.errorMessage = `Gagal memuat gambar: ${photo.url}`;
-      this.showErrorPopup = true;
+      console.error("Gagal memuat gambar:", photo.url);
+      // Hapus foto yang gagal dari galeri
+      this.galleryPhotos = this.galleryPhotos.filter((p) => p.id !== photo.id);
+      console.warn(`Gambar ${photo.url} dihapus dari galeri karena gagal dimuat.`);
     },
     closeErrorPopup() {
       this.showErrorPopup = false;
@@ -386,7 +442,7 @@ export default {
       this.showErrorPopup = true;
       return;
     }
-    console.log("Mounted: Starting camera and loading gallery...");
+    console.log("Mounted: Memulai kamera dan memuat galeri...");
     await this.startCamera();
     await this.loadGallery();
   },
@@ -464,9 +520,11 @@ export default {
 .video-feed {
   width: 100%;
   max-width: 600px;
+  height: auto;
   border: 3px solid #ff69b4;
   border-radius: 10px;
   transform: scaleX(-1);
+  object-fit: cover;
 }
 .flash-overlay {
   position: absolute;
@@ -548,5 +606,9 @@ export default {
   width: 100%;
   border-radius: 10px;
   border: 2px solid #ff69b4;
+}
+.debug-preview {
+  margin: 20px 0;
+  text-align: center;
 }
 </style>
