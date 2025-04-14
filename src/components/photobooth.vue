@@ -80,7 +80,7 @@ export default {
       isSaving: false,
       errorMessage: '',
       showErrorPopup: false,
-      isCanvasReady: false, // Tambah flag buat cek canvas
+      isCanvasReady: false,
     };
   },
   watch: {
@@ -88,9 +88,16 @@ export default {
       if (newPhotos.length === 3 && !this.isCapturing) {
         this.$nextTick(async () => {
           console.log("Photos updated, rendering preview...");
-          await this.renderPreview();
-          this.isCanvasReady = true;
-          console.log("Canvas ready for download");
+          try {
+            await this.renderPreview();
+            this.isCanvasReady = true;
+            console.log("Canvas ready for download");
+          } catch (error) {
+            console.error("Failed to render preview:", error);
+            this.isCanvasReady = false;
+            this.errorMessage = "Gagal merender preview. Download foto mentah sebagai alternatif.";
+            this.showErrorPopup = true;
+          }
         });
       }
     },
@@ -100,6 +107,7 @@ export default {
       try {
         this.stream = await navigator.mediaDevices.getUserMedia({ video: true });
         this.$refs.video.srcObject = this.stream;
+        console.log("Camera started, video dimensions:", this.$refs.video.videoWidth, "x", this.$refs.video.videoHeight);
       } catch (err) {
         console.error("Gagal akses kamera:", err);
         this.errorMessage = "Gagal akses kamera. Cek izin kamera ya!";
@@ -108,6 +116,11 @@ export default {
     },
     async takePhoto() {
       const video = this.$refs.video;
+      if (!video.videoWidth || !video.videoHeight) {
+        console.error("Video feed not ready, dimensions:", video.videoWidth, "x", video.videoHeight);
+        throw new Error("Kamera belum siap. Coba lagi ya!");
+      }
+
       const canvas = document.createElement("canvas");
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -118,7 +131,13 @@ export default {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       const dataUrl = canvas.toDataURL("image/png");
-      console.log("Photo captured, size:", dataUrl.length, "bytes");
+      console.log("Photo captured, data URL length:", dataUrl.length);
+
+      if (dataUrl.length < 1000) {
+        console.error("Captured photo is likely blank, data URL length:", dataUrl.length);
+        throw new Error("Gagal mengambil foto. Foto kosong!");
+      }
+
       return dataUrl;
     },
     async startPhotobooth() {
@@ -143,8 +162,16 @@ export default {
           this.showFlash = false;
         }, 300);
 
-        const photo = await this.takePhoto();
-        this.photos.push(photo);
+        try {
+          const photo = await this.takePhoto();
+          this.photos.push(photo);
+        } catch (error) {
+          console.error("Failed to capture photo:", error);
+          this.errorMessage = error.message;
+          this.showErrorPopup = true;
+          this.isCapturing = false;
+          return;
+        }
 
         this.animatePhoto = i;
         await new Promise((resolve) => setTimeout(resolve, 800));
@@ -157,26 +184,24 @@ export default {
       const canvas = this.$refs.previewCanvas;
       if (!canvas) {
         console.error("Canvas not found in DOM");
-        this.errorMessage = "Gagal menampilkan preview. Coba lagi ya!";
-        this.showErrorPopup = true;
-        return;
+        throw new Error("Canvas not found");
       }
 
       console.log("Rendering preview on canvas...");
       const ctx = canvas.getContext("2d");
       const images = await Promise.all(
         this.photos.map(
-          (photo) =>
+          (photo, index) =>
             new Promise((resolve, reject) => {
               const img = new Image();
               img.src = photo;
               img.onload = () => {
-                console.log("Image loaded:", img.src);
+                console.log(`Image ${index} loaded, dimensions:`, img.width, "x", img.height);
                 resolve(img);
               };
               img.onerror = () => {
-                console.error("Failed to load image:", img.src);
-                reject(new Error("Failed to load image"));
+                console.error(`Failed to load image ${index}:`, photo.substring(0, 50) + "...");
+                reject(new Error(`Failed to load image ${index}`));
               };
             })
         )
@@ -205,7 +230,7 @@ export default {
       });
 
       ctx.fillStyle = "#ff69b4";
-      ctx.font = "bold 36px 'Tangerine', cursive";
+      ctx.font = "bold 36px Arial"; // Ganti Tangerine ke Arial sementara
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("Happy Birthday Awliya Najwa", canvas.width / 2, textSpaceHeight / 2);
@@ -215,7 +240,7 @@ export default {
         month: "long",
         year: "numeric",
       });
-      ctx.font = "bold 40px 'Tangerine', cursive";
+      ctx.font = "bold 40px Arial";
       ctx.fillText(today, canvas.width / 2, canvas.height - textSpaceHeight / 2);
 
       console.log("Preview rendered successfully");
@@ -227,36 +252,41 @@ export default {
       this.showErrorPopup = false;
 
       try {
-        if (!this.isCanvasReady) {
-          console.error("Canvas not ready for download");
-          throw new Error("Preview belum siap. Tunggu sebentar ya!");
+        let dataUrl;
+        let fileName = `photobooth_${Date.now()}.png`;
+
+        if (this.isCanvasReady) {
+          console.log("Canvas is ready, generating data URL...");
+          const canvas = this.$refs.previewCanvas;
+          if (!canvas) {
+            console.error("Canvas not found for download");
+            throw new Error("Gagal menemukan preview. Coba lagi ya!");
+          }
+
+          dataUrl = canvas.toDataURL("image/png");
+          console.log("Data URL from canvas, length:", dataUrl.length);
+
+          if (dataUrl.length < 1000) {
+            console.error("Canvas data URL too short, likely blank");
+            throw new Error("Preview kosong. Menggunakan foto mentah sebagai alternatif.");
+          }
+        } else {
+          console.warn("Canvas not ready, using first photo as fallback...");
+          if (!this.photos.length) {
+            throw new Error("Tidak ada foto untuk di-download!");
+          }
+          dataUrl = this.photos[0]; // Fallback ke foto pertama
+          fileName = `photobooth_fallback_${Date.now()}.png`;
         }
-
-        const canvas = this.$refs.previewCanvas;
-        if (!canvas) {
-          console.error("Canvas not found for download");
-          throw new Error("Gagal menemukan preview. Coba lagi ya!");
-        }
-
-        console.log("Step 1: Generating data URL from canvas...");
-        const dataUrl = canvas.toDataURL("image/png");
-        console.log("Step 1: Data URL generated, length:", dataUrl.length);
-
-        if (dataUrl.length < 1000) {
-          console.error("Data URL too short, likely blank canvas");
-          throw new Error("Gagal menghasilkan foto. Preview kosong!");
-        }
-
-        const fileName = `photobooth_${Date.now()}.png`;
 
         // Convert data URL ke Blob
-        console.log("Step 2: Converting data URL to Blob...");
+        console.log("Converting data URL to Blob...");
         const response = await fetch(dataUrl);
         const blob = await response.blob();
-        console.log("Step 2: Blob created, size:", blob.size, "bytes");
+        console.log("Blob created, size:", blob.size, "bytes");
 
         // Upload ke Supabase Storage
-        console.log("Step 3: Uploading to storage bucket 'photobooth'...");
+        console.log("Uploading to storage bucket 'photobooth'...");
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('photobooth')
           .upload(`photos/${fileName}`, blob, {
@@ -264,49 +294,49 @@ export default {
           });
 
         if (uploadError) {
-          console.error("Step 3: Upload failed:", uploadError);
+          console.error("Upload failed:", uploadError);
           throw new Error(`Upload ke storage gagal: ${uploadError.message}`);
         }
-        console.log("Step 3: Upload successful:", uploadData);
+        console.log("Upload successful:", uploadData);
 
         // Ambil public URL
-        console.log("Step 4: Getting public URL...");
+        console.log("Getting public URL...");
         const { data: publicUrlData } = supabase.storage
           .from('photobooth')
           .getPublicUrl(`photos/${fileName}`);
 
         const publicUrl = publicUrlData.publicUrl;
         if (!publicUrl) {
-          console.error("Step 4: Failed to get public URL");
+          console.error("Failed to get public URL");
           throw new Error("Gagal mendapatkan public URL");
         }
-        console.log("Step 4: Public URL:", publicUrl);
+        console.log("Public URL:", publicUrl);
 
         // Simpan metadata ke tabel
-        console.log("Step 5: Inserting metadata to table 'photos'...");
+        console.log("Inserting metadata to table 'photos'...");
         const { error: dbError } = await supabase
           .from('photos')
           .insert([{ url: publicUrl, file_name: fileName, created_at: new Date().toISOString() }]);
 
         if (dbError) {
-          console.error("Step 5: Database insert failed:", dbError);
+          console.error("Database insert failed:", dbError);
           await supabase.storage.from('photobooth').remove([`photos/${fileName}`]);
           throw new Error(`Gagal menyimpan metadata ke tabel: ${dbError.message}`);
         }
-        console.log("Step 5: Metadata saved successfully");
+        console.log("Metadata saved successfully");
 
         // Download foto
-        console.log("Step 6: Downloading photo...");
+        console.log("Downloading photo...");
         const link = document.createElement("a");
         link.href = dataUrl;
         link.download = fileName;
         link.click();
-        console.log("Step 6: Download initiated");
+        console.log("Download initiated");
 
         // Refresh galeri
-        console.log("Step 7: Refreshing gallery...");
+        console.log("Refreshing gallery...");
         await this.loadGallery();
-        console.log("Step 7: Gallery refreshed, photos:", this.galleryPhotos);
+        console.log("Gallery refreshed, photos:", this.galleryPhotos);
       } catch (error) {
         console.error("Error in saveAndDownload:", error);
         this.errorMessage = error.message;
@@ -383,7 +413,7 @@ export default {
   z-index: 1000;
 }
 .error-popup {
-  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo2RDdGRTdGQkI1RDExRTdBODZBRkI2N0EyNDU0QzI2IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjZEN0ZFN0ZDQjVEMTFFN0E4NkFGQjY3QTI0NTRDMjYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo2RDdGRTdGOUI1RDExRTdBODZBRkI2N0EyNDU0QzI2IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjZEN0ZFN0ZBQjVEMTFFN0E4NkFGQjY3QTI0NTRDMjYiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7nxZ2eAAAAMklEQVR42mL4z8Dwn4GBgQHoJpgYGIBeo4mBAeghmBgYgF6jiYEB6CWYGJiAHqOJgQEAh84R4pW8p2IAAAAASUVORK5CYII=') repeat;
+  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRoYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo2RDdGRTdGQkI1RDExRTdBODZBRkI2N0EyNDU0QzI2IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjZEN0ZFN0ZDQjVEMTFFN0E4NkFGQjY3QTI0NTRDMjYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo2RDdGRTdGOUI1RDExRTdBODZBRkI2N0EyNDU0QzI2IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjZEN0ZFN0ZBQjVEMTFFN0E4NkFGQjY3QTI0NTRDMjYiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7nxZ2eAAAAMklEQVR42mL4z8Dwn4GBgQHoJpgYGIBeo4mBAeghmBgYgF6jiYEB6CWYGJiAHqOJgQEAh84R4pW8p2IAAAAASUVORK5CYII=') repeat;
   border-radius: 10px;
   padding: 20px;
   max-width: 400px;
@@ -415,7 +445,7 @@ export default {
 .preview-canvas {
   width: 100%;
   max-width: 400px;
-  border: 2px solid #ff69b4; /* Tambah border biar keliatan */
+  border: 2px solid #ff69b4;
 }
 .container {
   display: flex;
