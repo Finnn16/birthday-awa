@@ -24,7 +24,7 @@
         <div v-if="isCapturing" class="timer">{{ countdown }} detik</div>
 
         <button @click="startPhotobooth" :disabled="isCapturing" class="capture-btn">
-          {{ isCapturing ? sufer"Sedang Ambil Foto..." : "Ambil Foto!" }}
+          {{ isCapturing ? "Sedang Ambil Foto..." : "Ambil Foto!" }}
         </button>
         <button v-if="photos.length === 3 && !isCapturing" @click="saveAndDownload" class="download-btn">
           Simpan & Download
