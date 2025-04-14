@@ -202,13 +202,13 @@ export default {
         const fileName = `photobooth_${Date.now()}.png`;
 
         // Convert data URL ke Blob
-        console.log("Converting data URL to Blob...");
+        console.log("Step 1: Converting data URL to Blob...");
         const response = await fetch(dataUrl);
         const blob = await response.blob();
-        console.log("Blob created, size:", blob.size, "bytes");
+        console.log("Step 1: Blob created, size:", blob.size, "bytes");
 
         // Upload ke Supabase Storage
-        console.log("Uploading to storage bucket 'photobooth'...");
+        console.log("Step 2: Uploading to storage bucket 'photobooth'...");
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('photobooth')
           .upload(`photos/${fileName}`, blob, {
@@ -216,49 +216,53 @@ export default {
           });
 
         if (uploadError) {
-          console.error("Upload error:", uploadError);
-          throw new Error(`Gagal upload ke storage: ${uploadError.message}`);
+          console.error("Step 2: Upload failed:", uploadError);
+          throw new Error(`Upload ke storage gagal: ${uploadError.message}`);
         }
-        console.log("Upload successful:", uploadData);
+        console.log("Step 2: Upload successful:", uploadData);
 
         // Ambil public URL
-        console.log("Getting public URL...");
+        console.log("Step 3: Getting public URL...");
         const { data: publicUrlData } = supabase.storage
           .from('photobooth')
           .getPublicUrl(`photos/${fileName}`);
 
         const publicUrl = publicUrlData.publicUrl;
         if (!publicUrl) {
+          console.error("Step 3: Failed to get public URL");
           throw new Error("Gagal mendapatkan public URL");
         }
-        console.log("Public URL:", publicUrl);
+        console.log("Step 3: Public URL:", publicUrl);
 
         // Simpan metadata ke tabel
-        console.log("Inserting metadata to table 'photos'...");
+        console.log("Step 4: Inserting metadata to table 'photos'...");
         const { error: dbError } = await supabase
           .from('photos')
           .insert([{ url: publicUrl, file_name: fileName, created_at: new Date().toISOString() }]);
 
         if (dbError) {
-          console.error("Database error:", dbError);
+          console.error("Step 4: Database insert failed:", dbError);
           await supabase.storage.from('photobooth').remove([`photos/${fileName}`]);
-          throw new Error(`Gagal menyimpan metadata: ${dbError.message}`);
+          throw new Error(`Gagal menyimpan metadata ke tabel: ${dbError.message}`);
         }
-        console.log("Metadata saved successfully");
+        console.log("Step 4: Metadata saved successfully");
 
         // Download foto
-        console.log("Downloading photo...");
+        console.log("Step 5: Downloading photo...");
         const link = document.createElement("a");
         link.href = dataUrl;
         link.download = fileName;
         link.click();
+        console.log("Step 5: Download initiated");
 
         // Refresh galeri
+        console.log("Step 6: Refreshing gallery...");
         await this.loadGallery();
+        console.log("Step 6: Gallery refreshed");
 
         alert("Foto berhasil disimpan dan di-download!");
       } catch (error) {
-        console.error("Error saat save/download:", error);
+        console.error("Error in saveAndDownload:", error);
         this.errorMessage = error.message;
         this.showErrorPopup = true;
       } finally {
@@ -267,7 +271,7 @@ export default {
     },
     async loadGallery() {
       try {
-        console.log("Loading gallery...");
+        console.log("Loading gallery from table 'photos'...");
         const { data, error } = await supabase
           .from('photos')
           .select('*')
@@ -297,6 +301,7 @@ export default {
       this.showErrorPopup = true;
       return;
     }
+    console.log("Mounted: Starting camera and loading gallery...");
     await this.startCamera();
     await this.loadGallery();
   },
