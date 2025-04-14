@@ -1,8 +1,12 @@
+<!-- Photobooth.vue -->
 <template>
   <div class="photobooth">
+    <!-- Preview Section -->
     <div class="preview-section" v-if="photos.length === 3 && !isCapturing">
       <canvas ref="previewCanvas" class="preview-canvas"></canvas>
     </div>
+
+    <!-- Video dan Capture Section -->
     <div class="container">
       <div class="video-section">
         <div class="video-wrapper">
@@ -14,8 +18,8 @@
         <button @click="startPhotobooth" :disabled="isCapturing" class="capture-btn">
           {{ isCapturing ? "Sedang Ambil Foto..." : "Ambil Foto!" }}
         </button>
-        <button v-if="photos.length === 3 && !isCapturing" @click="downloadCombinedPhoto" class="download-btn">
-          Download Semua
+        <button v-if="photos.length === 3 && !isCapturing" @click="saveAndDownload" class="download-btn">
+          Simpan & Download
         </button>
       </div>
       <div class="photo-gallery">
@@ -28,10 +32,28 @@
         </div>
       </div>
     </div>
+
+    <!-- Galeri Foto dari Supabase -->
+    <div class="gallery-section" v-if="galleryPhotos.length">
+      <h2>Galeri Momen Kita 💕</h2>
+      <div class="gallery-grid">
+        <div v-for="photo in galleryPhotos" :key="photo.id" class="gallery-item">
+          <img :src="photo.url" class="gallery-photo" />
+          <p>{{ new Date(photo.created_at).toLocaleDateString("id-ID") }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import { createClient } from '@supabase/supabase-js';
+
+// Inisialisasi Supabase
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 export default {
   data() {
     return {
@@ -41,6 +63,8 @@ export default {
       countdown: 5,
       showFlash: false,
       animatePhoto: null,
+      galleryPhotos: [], // Foto dari Supabase
+      isSaving: false,
     };
   },
   watch: {
@@ -59,6 +83,7 @@ export default {
         this.$refs.video.srcObject = this.stream;
       } catch (err) {
         console.error("Gagal akses kamera:", err);
+        alert("Gagal akses kamera. Cek izin kamera ya!");
       }
     },
     async takePhoto() {
@@ -105,44 +130,19 @@ export default {
     },
     async renderPreview() {
       const canvas = this.$refs.previewCanvas;
-      if (!canvas) {
-        console.error("Canvas tidak ditemukan!");
-        return;
-      }
+      if (!canvas) return;
+
       const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        console.error("Gagal mendapatkan context 2D dari canvas!");
-        return;
-      }
-
       const images = await Promise.all(
-        this.photos.map((photo) =>
-          new Promise((resolve, reject) => {
-            const img = new Image();
-            img.src = photo;
-            img.onload = () => resolve(img);
-            img.onerror = () => {
-              console.error("Gagal load gambar:", photo);
-              reject(new Error("Gagal load gambar"));
-            };
-          })
+        this.photos.map(
+          (photo) =>
+            new Promise((resolve) => {
+              const img = new Image();
+              img.src = photo;
+              img.onload = () => resolve(img);
+            })
         )
-      ).catch((err) => {
-        console.error("Error loading images:", err);
-        return [];
-      });
-
-      if (images.length !== 3) {
-        console.error("Jumlah gambar tidak sesuai:", images.length);
-        return;
-      }
-
-      const font = new FontFace("Tangerine", "url(https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&display=swap)");
-      await font.load().then((loadedFont) => {
-        document.fonts.add(loadedFont);
-      }).catch((err) => {
-        console.error("Gagal load font Tangerine:", err);
-      });
+      );
 
       const photoWidth = images[0].width;
       const photoHeight = images[0].height;
@@ -151,7 +151,6 @@ export default {
       canvas.width = photoWidth + 40;
       canvas.height = photoHeight * 3 + padding * 2 + textSpaceHeight * 2;
 
-      // Background putih (default)
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -164,14 +163,12 @@ export default {
         ctx.drawImage(img, 20, yPosition, photoWidth, photoHeight);
       });
 
-      // Teks statis di atas (ukuran 36px)
       ctx.fillStyle = "#ff69b4";
       ctx.font = "bold 36px 'Tangerine', cursive";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("Happy Birthday Awliya Najwa", canvas.width / 2, textSpaceHeight / 2);
 
-      // Tanggal di bawah (ukuran 40px)
       const today = new Date().toLocaleDateString("id-ID", {
         day: "numeric",
         month: "long",
@@ -180,67 +177,72 @@ export default {
       ctx.font = "bold 40px 'Tangerine', cursive";
       ctx.fillText(today, canvas.width / 2, canvas.height - textSpaceHeight / 2);
     },
-    async downloadCombinedPhoto() {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
+    async saveAndDownload() {
+      if (this.isSaving) return;
+      this.isSaving = true;
 
-      const images = await Promise.all(
-        this.photos.map((photo) =>
-          new Promise((resolve) => {
-            const img = new Image();
-            img.src = photo;
-            img.onload = () => resolve(img);
-          })
-        )
-      );
+      try {
+        const canvas = this.$refs.previewCanvas;
+        const dataUrl = canvas.toDataURL("image/png");
+        const fileName = `photobooth_${Date.now()}.png`;
 
-      const font = new FontFace("Tangerine", "url(https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&display=swap)");
-      await font.load().then((loadedFont) => {
-        document.fonts.add(loadedFont);
-      }).catch((err) => {
-        console.error("Gagal load font Tangerine:", err);
-      });
+        // Convert data URL ke Blob
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
 
-      const photoWidth = images[0].width;
-      const photoHeight = images[0].height;
-      const padding = 10;
-      const textSpaceHeight = 100;
-      canvas.width = photoWidth + 40;
-      canvas.height = photoHeight * 3 + padding * 2 + textSpaceHeight * 2;
+        // Upload ke Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('photobooth')
+          .upload(`photos/${fileName}`, blob, {
+            contentType: 'image/png',
+          });
 
-      // Background putih (default)
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (uploadError) {
+          throw new Error(`Gagal upload foto: ${uploadError.message}`);
+        }
 
-      ctx.strokeStyle = "#ff69b4";
-      ctx.lineWidth = 20;
-      ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        // Ambil public URL
+        const { publicUrl } = supabase.storage
+          .from('photobooth')
+          .getPublicUrl(`photos/${fileName}`);
 
-      images.forEach((img, index) => {
-        const yPosition = textSpaceHeight + index * (photoHeight + padding);
-        ctx.drawImage(img, 20, yPosition, photoWidth, photoHeight);
-      });
+        // Simpan metadata ke tabel
+        const { error: dbError } = await supabase
+          .from('photos')
+          .insert([{ url: publicUrl, file_name: fileName, created_at: new Date().toISOString() }]);
 
-      // Teks statis di atas (ukuran 36px)
-      ctx.fillStyle = "#ff69b4";
-      ctx.font = "bold 36px 'Tangerine', cursive";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("Happy Birthday Awliya Najwa", canvas.width / 2, textSpaceHeight / 2);
+        if (dbError) {
+          throw new Error(`Gagal simpan metadata: ${dbError.message}`);
+        }
 
-      // Tanggal di bawah (ukuran 40px)
-      const today = new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-      ctx.font = "bold 40px 'Tangerine', cursive";
-      ctx.fillText(today, canvas.width / 2, canvas.height - textSpaceHeight / 2);
+        // Download foto
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = fileName;
+        link.click();
 
-      const link = document.createElement("a");
-      link.href = canvas.toDataURL("image/png");
-      link.download = "photobooth_awa_harfin.png";
-      link.click();
+        // Refresh galeri
+        await this.loadGallery();
+
+        alert("Foto berhasil disimpan dan di-download!");
+      } catch (error) {
+        console.error("Error saat save/download:", error);
+        alert("Gagal menyimpan foto: " + error.message);
+      } finally {
+        this.isSaving = false;
+      }
+    },
+    async loadGallery() {
+      try {
+        const { data, error } = await supabase
+          .from('photos')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        this.galleryPhotos = data || [];
+      } catch (error) {
+        console.error("Gagal load galeri:", error);
+      }
     },
     stopCamera() {
       if (this.stream) {
@@ -248,8 +250,9 @@ export default {
       }
     },
   },
-  mounted() {
-    this.startCamera();
+  async mounted() {
+    await this.startCamera();
+    await this.loadGallery();
   },
   beforeDestroy() {
     this.stopCamera();
@@ -297,22 +300,16 @@ export default {
   animation: flash 0.3s ease-out;
 }
 @keyframes flash {
-  0% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
 }
 .timer {
   font-size: 28px;
   color: #ff69b4;
   font-weight: bold;
 }
-.capture-btn {
+.capture-btn, .download-btn {
   padding: 12px 25px;
   font-size: 18px;
   background-color: #ff69b4;
@@ -322,11 +319,11 @@ export default {
   cursor: pointer;
   transition: background-color 0.3s;
 }
-.capture-btn:disabled {
+.capture-btn:disabled, .download-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
-.capture-btn:hover:not(:disabled) {
+.capture-btn:hover:not(:disabled), .download-btn:hover:not(:disabled) {
   background-color: #ff1493;
 }
 .photo-gallery {
@@ -347,29 +344,35 @@ export default {
   animation: slideIn 1s ease-out;
 }
 @keyframes slideIn {
-  0% {
-    transform: translateX(-150%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  0% { transform: translateX(-150%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
 }
 .preview-canvas {
   width: 100%;
   max-width: 400px;
 }
-.download-btn {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #ff69b4;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
+.gallery-section {
+  margin-top: 40px;
+  text-align: center;
 }
-.download-btn:hover {
-  background-color: #ff1493;
+.gallery-section h2 {
+  color: #ff69b4;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.gallery-item {
+  text-align: center;
+}
+.gallery-photo {
+  width: 100%;
+  border-radius: 10px;
+  border: 2px solid #ff69b4;
 }
 </style>
