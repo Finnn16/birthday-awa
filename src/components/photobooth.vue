@@ -1,7 +1,14 @@
 <!-- Photobooth.vue -->
 <template>
   <div class="photobooth">
-    <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <!-- Pop-up Error -->
+    <div v-if="showErrorPopup" class="error-popup-overlay">
+      <div class="error-popup">
+        <p>{{ errorMessage }}</p>
+        <button @click="closeErrorPopup" class="error-popup-btn">OK</button>
+      </div>
+    </div>
+
     <!-- Preview Section -->
     <div class="preview-section" v-if="photos.length === 3 && !isCapturing">
       <canvas ref="previewCanvas" class="preview-canvas"></canvas>
@@ -67,6 +74,7 @@ export default {
       galleryPhotos: [],
       isSaving: false,
       errorMessage: '',
+      showErrorPopup: false, // State untuk pop-up
     };
   },
   watch: {
@@ -86,6 +94,7 @@ export default {
       } catch (err) {
         console.error("Gagal akses kamera:", err);
         this.errorMessage = "Gagal akses kamera. Cek izin kamera ya!";
+        this.showErrorPopup = true;
       }
     },
     async takePhoto() {
@@ -106,6 +115,7 @@ export default {
       this.isCapturing = true;
       this.photos = [];
       this.errorMessage = '';
+      this.showErrorPopup = false;
 
       for (let i = 0; i < 3; i++) {
         this.countdown = 5;
@@ -184,6 +194,7 @@ export default {
       if (this.isSaving) return;
       this.isSaving = true;
       this.errorMessage = '';
+      this.showErrorPopup = false;
 
       try {
         const canvas = this.$refs.previewCanvas;
@@ -223,7 +234,6 @@ export default {
           .insert([{ url: publicUrl, file_name: fileName, created_at: new Date().toISOString() }]);
 
         if (dbError) {
-          // Hapus file dari storage kalau insert gagal
           await supabase.storage.from('photobooth').remove([`photos/${fileName}`]);
           throw new Error(`Gagal simpan metadata ke tabel: ${dbError.message}`);
         }
@@ -241,6 +251,7 @@ export default {
       } catch (error) {
         console.error("Error saat save/download:", error);
         this.errorMessage = "Gagal menyimpan foto: " + error.message;
+        this.showErrorPopup = true;
       } finally {
         this.isSaving = false;
       }
@@ -256,7 +267,12 @@ export default {
       } catch (error) {
         console.error("Gagal load galeri:", error);
         this.errorMessage = "Gagal memuat galeri: " + error.message;
+        this.showErrorPopup = true;
       }
+    },
+    closeErrorPopup() {
+      this.showErrorPopup = false;
+      this.errorMessage = '';
     },
     stopCamera() {
       if (this.stream) {
@@ -267,6 +283,7 @@ export default {
   async mounted() {
     if (!supabaseUrl || !supabaseKey) {
       this.errorMessage = "Gagal terhubung ke server. Cek konfigurasi!";
+      this.showErrorPopup = true;
       return;
     }
     await this.startCamera();
@@ -282,13 +299,43 @@ export default {
 .photobooth {
   padding: 20px;
 }
-.error-message {
-  color: red;
-  background-color: #ffe6e6;
-  padding: 10px;
-  border-radius: 5px;
-  margin: 10px 0;
+/* Pop-up Styling */
+.error-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.error-popup {
+  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo2RDdGRTdGQkI1RDExRTdBODZBRkI2N0EyNDU0QzI2IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjZEN0ZFN0ZDQjVEMTFFN0E4NkFGQjY3QTI0NTRDMjYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo2RDdGRTdGOUI1RDExRTdBODZBRkI2N0EyNDU0QzI2IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjZEN0ZFN0ZBQjVEMTFFN0E4NkFGQjY3QTI0NTRDMjYiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7nxZ2eAAAAMklEQVR42mL4z8Dwn4GBgQHoJpgYGIBeo4mBAeghmBgYgF6jiYEB6CWYGJiAHqOJgQEAh84R4pW8p2IAAAAASUVORK5CYII=') repeat;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 400px;
   text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.error-popup p {
+  color: red;
+  font-size: 16px;
+  margin: 0 0 15px;
+}
+.error-popup-btn {
+  padding: 8px 20px;
+  background-color: #ff69b4;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.error-popup-btn:hover {
+  background-color: #ff1493;
 }
 .preview-section {
   display: flex;
