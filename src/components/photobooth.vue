@@ -42,13 +42,18 @@
     </div>
 
     <!-- Galeri Foto dari Supabase -->
-    <div class="gallery-section" v-if="galleryPhotos.length">
+    <div class="gallery-section">
       <h2>Galeri Momen Kita 💕</h2>
-      <div class="gallery-grid">
-        <div v-for="photo in galleryPhotos" :key="photo.id" class="gallery-item">
-          <img :src="photo.url" class="gallery-photo" />
-          <p>{{ new Date(photo.created_at).toLocaleDateString("id-ID") }}</p>
+      <div v-if="galleryPhotos.length">
+        <div class="gallery-grid">
+          <div v-for="photo in galleryPhotos" :key="photo.id" class="gallery-item">
+            <img :src="photo.url" class="gallery-photo" @error="handleImageError(photo)" />
+            <p>{{ new Date(photo.created_at).toLocaleDateString("id-ID") }}</p>
+          </div>
         </div>
+      </div>
+      <div v-else>
+        <p>Belum ada foto di galeri. Ayo ambil foto bareng Awa! 📸</p>
       </div>
     </div>
   </div>
@@ -75,13 +80,17 @@ export default {
       isSaving: false,
       errorMessage: '',
       showErrorPopup: false,
+      isCanvasReady: false, // Tambah flag buat cek canvas
     };
   },
   watch: {
     photos(newPhotos) {
       if (newPhotos.length === 3 && !this.isCapturing) {
-        this.$nextTick(() => {
-          this.renderPreview();
+        this.$nextTick(async () => {
+          console.log("Photos updated, rendering preview...");
+          await this.renderPreview();
+          this.isCanvasReady = true;
+          console.log("Canvas ready for download");
         });
       }
     },
@@ -108,12 +117,15 @@ export default {
       ctx.scale(-1, 1);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      return canvas.toDataURL("image/png");
+      const dataUrl = canvas.toDataURL("image/png");
+      console.log("Photo captured, size:", dataUrl.length, "bytes");
+      return dataUrl;
     },
     async startPhotobooth() {
       if (this.isCapturing) return;
       this.isCapturing = true;
       this.photos = [];
+      this.isCanvasReady = false;
       this.errorMessage = '';
       this.showErrorPopup = false;
 
@@ -143,16 +155,29 @@ export default {
     },
     async renderPreview() {
       const canvas = this.$refs.previewCanvas;
-      if (!canvas) return;
+      if (!canvas) {
+        console.error("Canvas not found in DOM");
+        this.errorMessage = "Gagal menampilkan preview. Coba lagi ya!";
+        this.showErrorPopup = true;
+        return;
+      }
 
+      console.log("Rendering preview on canvas...");
       const ctx = canvas.getContext("2d");
       const images = await Promise.all(
         this.photos.map(
           (photo) =>
-            new Promise((resolve) => {
+            new Promise((resolve, reject) => {
               const img = new Image();
               img.src = photo;
-              img.onload = () => resolve(img);
+              img.onload = () => {
+                console.log("Image loaded:", img.src);
+                resolve(img);
+              };
+              img.onerror = () => {
+                console.error("Failed to load image:", img.src);
+                reject(new Error("Failed to load image"));
+              };
             })
         )
       );
@@ -164,6 +189,8 @@ export default {
       canvas.width = photoWidth + 40;
       canvas.height = photoHeight * 3 + padding * 2 + textSpaceHeight * 2;
 
+      console.log("Canvas dimensions:", canvas.width, "x", canvas.height);
+
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -173,6 +200,7 @@ export default {
 
       images.forEach((img, index) => {
         const yPosition = textSpaceHeight + index * (photoHeight + padding);
+        console.log("Drawing image", index, "at y:", yPosition);
         ctx.drawImage(img, 20, yPosition, photoWidth, photoHeight);
       });
 
@@ -189,6 +217,8 @@ export default {
       });
       ctx.font = "bold 40px 'Tangerine', cursive";
       ctx.fillText(today, canvas.width / 2, canvas.height - textSpaceHeight / 2);
+
+      console.log("Preview rendered successfully");
     },
     async saveAndDownload() {
       if (this.isSaving) return;
@@ -197,18 +227,36 @@ export default {
       this.showErrorPopup = false;
 
       try {
+        if (!this.isCanvasReady) {
+          console.error("Canvas not ready for download");
+          throw new Error("Preview belum siap. Tunggu sebentar ya!");
+        }
+
         const canvas = this.$refs.previewCanvas;
+        if (!canvas) {
+          console.error("Canvas not found for download");
+          throw new Error("Gagal menemukan preview. Coba lagi ya!");
+        }
+
+        console.log("Step 1: Generating data URL from canvas...");
         const dataUrl = canvas.toDataURL("image/png");
+        console.log("Step 1: Data URL generated, length:", dataUrl.length);
+
+        if (dataUrl.length < 1000) {
+          console.error("Data URL too short, likely blank canvas");
+          throw new Error("Gagal menghasilkan foto. Preview kosong!");
+        }
+
         const fileName = `photobooth_${Date.now()}.png`;
 
         // Convert data URL ke Blob
-        console.log("Step 1: Converting data URL to Blob...");
+        console.log("Step 2: Converting data URL to Blob...");
         const response = await fetch(dataUrl);
         const blob = await response.blob();
-        console.log("Step 1: Blob created, size:", blob.size, "bytes");
+        console.log("Step 2: Blob created, size:", blob.size, "bytes");
 
         // Upload ke Supabase Storage
-        console.log("Step 2: Uploading to storage bucket 'photobooth'...");
+        console.log("Step 3: Uploading to storage bucket 'photobooth'...");
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('photobooth')
           .upload(`photos/${fileName}`, blob, {
@@ -216,51 +264,49 @@ export default {
           });
 
         if (uploadError) {
-          console.error("Step 2: Upload failed:", uploadError);
+          console.error("Step 3: Upload failed:", uploadError);
           throw new Error(`Upload ke storage gagal: ${uploadError.message}`);
         }
-        console.log("Step 2: Upload successful:", uploadData);
+        console.log("Step 3: Upload successful:", uploadData);
 
         // Ambil public URL
-        console.log("Step 3: Getting public URL...");
+        console.log("Step 4: Getting public URL...");
         const { data: publicUrlData } = supabase.storage
           .from('photobooth')
           .getPublicUrl(`photos/${fileName}`);
 
         const publicUrl = publicUrlData.publicUrl;
         if (!publicUrl) {
-          console.error("Step 3: Failed to get public URL");
+          console.error("Step 4: Failed to get public URL");
           throw new Error("Gagal mendapatkan public URL");
         }
-        console.log("Step 3: Public URL:", publicUrl);
+        console.log("Step 4: Public URL:", publicUrl);
 
         // Simpan metadata ke tabel
-        console.log("Step 4: Inserting metadata to table 'photos'...");
+        console.log("Step 5: Inserting metadata to table 'photos'...");
         const { error: dbError } = await supabase
           .from('photos')
           .insert([{ url: publicUrl, file_name: fileName, created_at: new Date().toISOString() }]);
 
         if (dbError) {
-          console.error("Step 4: Database insert failed:", dbError);
+          console.error("Step 5: Database insert failed:", dbError);
           await supabase.storage.from('photobooth').remove([`photos/${fileName}`]);
           throw new Error(`Gagal menyimpan metadata ke tabel: ${dbError.message}`);
         }
-        console.log("Step 4: Metadata saved successfully");
+        console.log("Step 5: Metadata saved successfully");
 
         // Download foto
-        console.log("Step 5: Downloading photo...");
+        console.log("Step 6: Downloading photo...");
         const link = document.createElement("a");
         link.href = dataUrl;
         link.download = fileName;
         link.click();
-        console.log("Step 5: Download initiated");
+        console.log("Step 6: Download initiated");
 
         // Refresh galeri
-        console.log("Step 6: Refreshing gallery...");
+        console.log("Step 7: Refreshing gallery...");
         await this.loadGallery();
-        console.log("Step 6: Gallery refreshed");
-
-        alert("Foto berhasil disimpan dan di-download!");
+        console.log("Step 7: Gallery refreshed, photos:", this.galleryPhotos);
       } catch (error) {
         console.error("Error in saveAndDownload:", error);
         this.errorMessage = error.message;
@@ -276,14 +322,23 @@ export default {
           .from('photos')
           .select('*')
           .order('created_at', { ascending: false });
-        if (error) throw error;
+        if (error) {
+          console.error("Load gallery error:", error);
+          throw new Error(`Query failed: ${error.message}`);
+        }
+        console.log("Raw data from Supabase:", data);
         this.galleryPhotos = data || [];
-        console.log("Gallery loaded:", this.galleryPhotos.length, "photos");
+        console.log("Gallery loaded:", this.galleryPhotos.length, "photos", this.galleryPhotos);
       } catch (error) {
         console.error("Gagal load galeri:", error);
         this.errorMessage = "Gagal memuat galeri: " + error.message;
         this.showErrorPopup = true;
       }
+    },
+    handleImageError(photo) {
+      console.error("Failed to load image:", photo.url);
+      this.errorMessage = `Gagal memuat gambar: ${photo.url}`;
+      this.showErrorPopup = true;
     },
     closeErrorPopup() {
       this.showErrorPopup = false;
@@ -356,6 +411,11 @@ export default {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
+}
+.preview-canvas {
+  width: 100%;
+  max-width: 400px;
+  border: 2px solid #ff69b4; /* Tambah border biar keliatan */
 }
 .container {
   display: flex;
@@ -434,10 +494,6 @@ export default {
 @keyframes slideIn {
   0% { transform: translateX(-150%); opacity: 0; }
   100% { transform: translateX(0); opacity: 1; }
-}
-.preview-canvas {
-  width: 100%;
-  max-width: 400px;
 }
 .gallery-section {
   margin-top: 40px;
