@@ -11,6 +11,7 @@
           {{ isChallengeVisible ? 'Tutup' : 'I nak challenges' }}
         </button>
       </div>
+      <DreamBoard />
       <transition name="slide-fade">
         <RomanticDailyChallenge 
           v-if="isChallengeVisible" 
@@ -29,6 +30,7 @@ import PixelLoveTimer from './components/PixelLoveTimer.vue'
 import RomanticDailyChallenge from './components/RomanticDailyChallenge.vue'
 import photobooth from './components/photobooth.vue'
 import lovenotes from './components/lovenotes.vue'
+import DreamBoard from './components/DreamBoard.vue'
 
 export default {
   name: 'App',
@@ -36,7 +38,8 @@ export default {
     PixelLoveTimer,
     RomanticDailyChallenge,
     photobooth,
-    lovenotes
+    lovenotes,
+    DreamBoard
   },
   data() {
     return {
