@@ -11,14 +11,13 @@
           {{ isChallengeVisible ? 'Tutup' : 'I nak challenges' }}
         </button>
       </div>
-      <photobooth />
-      
       <transition name="slide-fade">
         <RomanticDailyChallenge 
           v-if="isChallengeVisible" 
           class="daily-challenge-component"
         />
       </transition>
+      <photobooth />
 
       <lovenotes />
     </div>
