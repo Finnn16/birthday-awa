@@ -28,7 +28,21 @@
   </template>
   
   <script>
-  import { supabase } from '../supabase'
+  import { createClient } from '@supabase/supabase-js';
+
+// Inisialisasi Supabase client
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+
+let supabase = null;
+try {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Supabase URL atau Key tidak ditemukan!");
+  }
+  supabase = createClient(supabaseUrl, supabaseKey);
+} catch (error) {
+  console.error(error.message);
+}
   
   export default {
     data() {
