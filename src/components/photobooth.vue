@@ -13,12 +13,6 @@
       <canvas ref="previewCanvas" class="preview-canvas"></canvas>
     </div>
 
-    <!-- Debug Preview (opsional untuk debugging) -->
-    <div v-if="photos.length > 0" class="debug-preview">
-      <h3>Debug: Foto Mentah</h3>
-      <img v-for="(photo, index) in photos" :key="index" :src="photo" style="max-width: 200px; margin: 10px;" />
-    </div>
-
     <!-- Video dan Capture Section -->
     <div class="container">
       <div class="video-section">
