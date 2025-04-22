@@ -39,7 +39,7 @@ export default {
     RomanticDailyChallenge,
     photobooth,
     lovenotes,
-    DreamBoard,
+    DreamBoard
   },
   data() {
     return {
