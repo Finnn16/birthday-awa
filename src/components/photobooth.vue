@@ -1,4 +1,3 @@
-<!-- Photobooth.vue -->
 <template>
   <div class="photobooth">
     <!-- Pop-up Error -->
@@ -116,7 +115,7 @@ export default {
             this.errorMessage = "Gagal merender pratinjau. Download foto mentah sebagai alternatif.";
             this.showErrorPopup = true;
           }
-        }, 100); // Penundaan 100ms untuk memastikan DOM siap
+        }, 100);
       }
     },
   },
@@ -145,7 +144,6 @@ export default {
         throw new Error("Kamera belum siap. Coba lagi ya!");
       }
 
-      // Tunggu hingga video benar-benar siap
       await new Promise((resolve) => {
         if (video.readyState >= 2) {
           resolve();
@@ -159,8 +157,9 @@ export default {
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext("2d");
 
-      // Gambar tanpa transformasi (karena video sudah dibalik via CSS)
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Balik gambar secara horizontal biar sesuai preview
+      ctx.scale(-1, 1); // Mirror horizontal
+      ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
 
       const dataUrl = canvas.toDataURL("image/png");
       console.log("Foto diambil, panjang data URL:", dataUrl.length);
@@ -222,7 +221,6 @@ export default {
       console.log("Merender pratinjau di canvas...");
       const ctx = canvas.getContext("2d");
 
-      // Validasi gambar
       const images = await Promise.all(
         this.photos.map(
           (photo, index) =>
@@ -238,54 +236,46 @@ export default {
               };
               img.onerror = () => {
                 console.error(`Gagal memuat gambar ${index}:`, photo.substring(0, 50) + "...");
-                reject(new Error(`Gagal memuat gambar ${index}`));
+                reject(new Error(`Gambar ${index} gagal dimuat`));
               };
             })
         )
       );
 
-      // Cek apakah ada gambar yang valid
       if (images.length !== 3) {
         throw new Error("Jumlah gambar tidak sesuai, harap ambil 3 foto");
       }
 
-      // Dimensi foto
       const photoWidth = images[0].width;
       const photoHeight = images[0].height;
-      const padding = 10; // Jarak antar foto
-      const textSpaceHeight = 50; // Ruang untuk teks di atas dan bawah
-      const borderWidth = 20; // Lebar border pink
+      const padding = 10;
+      const textSpaceHeight = 50;
+      const borderWidth = 20;
 
-      // Atur dimensi canvas
-      canvas.width = photoWidth + borderWidth * 2; // Lebar canvas = lebar foto + border di kedua sisi
-      canvas.height = photoHeight * 3 + padding * 2 + textSpaceHeight * 2 + borderWidth * 2; // Tinggi canvas = tinggi 3 foto + padding + teks + border
+      canvas.width = photoWidth + borderWidth * 2;
+      canvas.height = photoHeight * 3 + padding * 2 + textSpaceHeight * 2 + borderWidth * 2;
 
       console.log("Dimensi canvas:", canvas.width, "x", canvas.height);
 
-      // Bersihkan canvas dan beri background putih
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Gambar border pink
       ctx.strokeStyle = "#ff69b4";
       ctx.lineWidth = borderWidth;
       ctx.strokeRect(borderWidth / 2, borderWidth / 2, canvas.width - borderWidth, canvas.height - borderWidth);
 
-      // Gambar tiga foto dengan posisi yang benar
       images.forEach((img, index) => {
         const yPosition = borderWidth + textSpaceHeight + index * (photoHeight + padding);
         console.log("Menggambar gambar", index, "di y:", yPosition);
         ctx.drawImage(img, borderWidth, yPosition, photoWidth, photoHeight);
       });
 
-      // Tambahkan teks "Happy Birthday Awa Najwa" di atas
       ctx.fillStyle = "#ff69b4";
       ctx.font = "bold 36px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("Happy Birthday Awa Najwa", canvas.width / 2, borderWidth + textSpaceHeight / 2);
 
-      // Tambahkan tanggal di bawah
       const today = new Date().toLocaleDateString("id-ID", {
         day: "numeric",
         month: "long",
@@ -331,13 +321,12 @@ export default {
           fileName = `photobooth_fallback_${Date.now()}.png`;
         }
 
-        // Convert data URL ke Blob dan kompresi jika perlu
         console.log("Mengonversi data URL ke Blob...");
         let response = await fetch(dataUrl);
         let blob = await response.blob();
         console.log("Blob asli, ukuran:", blob.size, "byte");
 
-        if (blob.size > 2 * 1024 * 1024) { // Jika lebih dari 2MB
+        if (blob.size > 2 * 1024 * 1024) {
           console.log("Mengompresi gambar...");
           const img = new Image();
           img.src = dataUrl;
@@ -353,7 +342,6 @@ export default {
           console.log("Blob terkompresi, ukuran:", blob.size, "byte");
         }
 
-        // Upload ke Supabase Storage
         console.log("Mengunggah ke bucket 'photobooth'...");
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('photobooth')
@@ -367,7 +355,6 @@ export default {
         }
         console.log("Unggahan berhasil:", uploadData);
 
-        // Ambil public URL
         console.log("Mengambil URL publik...");
         const { data: publicUrlData } = supabase.storage
           .from('photobooth')
@@ -380,7 +367,6 @@ export default {
         }
         console.log("URL Publik:", publicUrl);
 
-        // Simpan metadata ke tabel
         console.log("Menyisipkan metadata ke tabel 'photos'...");
         const { error: dbError } = await supabase
           .from('photos')
@@ -393,7 +379,6 @@ export default {
         }
         console.log("Metadata berhasil disimpan");
 
-        // Download foto
         console.log("Mengunduh foto...");
         const link = document.createElement("a");
         link.href = dataUrl;
@@ -401,7 +386,6 @@ export default {
         link.click();
         console.log("Pengunduhan dimulai");
 
-        // Refresh galeri
         console.log("Memperbarui galeri...");
         await this.loadGallery();
         console.log("Galeri diperbarui, foto:", this.galleryPhotos);
@@ -425,7 +409,6 @@ export default {
           throw new Error(`Query gagal: ${error.message}`);
         }
         console.log("Data mentah dari Supabase:", data);
-        // Filter entri dengan URL valid
         this.galleryPhotos = (data || []).filter(
           (photo) => photo.url && typeof photo.url === 'string' && photo.url.startsWith('http')
         );
@@ -440,7 +423,6 @@ export default {
     },
     handleImageError(photo) {
       console.error("Gagal memuat gambar:", photo.url);
-      // Hapus foto yang gagal dari galeri
       this.galleryPhotos = this.galleryPhotos.filter((p) => p.id !== photo.id);
       console.warn(`Gambar ${photo.url} dihapus dari galeri karena gagal dimuat.`);
     },
@@ -455,7 +437,7 @@ export default {
     },
   },
   async mounted() {
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabase) {
       this.errorMessage = "Gagal terhubung ke server. Cek konfigurasi!";
       this.showErrorPopup = true;
       return;

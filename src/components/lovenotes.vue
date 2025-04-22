@@ -1,4 +1,3 @@
-<!-- LoveNotes.vue -->
 <template>
   <div class="love-notes">
     <h1>Daily Love Note Challenge 💕</h1>
@@ -19,10 +18,12 @@
       </button>
     </div>
 
-    <div class="note-list">
-      <div v-for="note in loveNotes" :key="note.id" class="note-card">
-        <p>{{ note.text }}</p>
-        <small>Dari: {{ note.author }} | {{ new Date(note.created_at).toLocaleDateString("id-ID") }}</small>
+    <div class="note-list-wrapper">
+      <div class="note-list" ref="noteList">
+        <div v-for="note in loveNotes" :key="note.id" class="note-card">
+          <p>{{ note.text }}</p>
+          <small>Dari: {{ note.author }} | {{ new Date(note.created_at).toLocaleDateString("id-ID") }}</small>
+        </div>
       </div>
     </div>
   </div>
@@ -64,18 +65,14 @@ export default {
     },
   },
   async mounted() {
-    // Cek koneksi Supabase
     if (!supabase) {
       this.errorMessage = "Gagal terhubung ke server. Cek konfigurasi!";
       console.error("Supabase client tidak terinisialisasi.");
       return;
     }
-
-    // Debug info
     console.log("User Agent:", navigator.userAgent);
     console.log("Author:", this.author);
     console.log("Supabase URL:", supabaseUrl);
-
     await this.loadNotes();
   },
   methods: {
@@ -90,6 +87,12 @@ export default {
           throw new Error(`Supabase error: ${error.message} (code: ${error.code})`);
         }
         this.loveNotes = data || [];
+        // Scroll ke atas setelah load data
+        this.$nextTick(() => {
+          if (this.$refs.noteList) {
+            this.$refs.noteList.scrollTop = 0;
+          }
+        });
       } catch (error) {
         this.errorMessage = "Gagal memuat catatan. Coba refresh atau hubungi admin!";
         console.error("Gagal load love notes:", error);
@@ -165,12 +168,35 @@ h1 {
   background-color: #ccc;
   cursor: not-allowed;
 }
+.note-list-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  border: 2px solid #ff69b4;
+  border-radius: 10px;
+  padding: 10px;
+  background-color: #fff;
+}
 .note-list {
+  max-height: 300px; /* Atur tinggi maksimum */
+  overflow-y: auto; /* Tambah scroll vertikal */
   display: flex;
   flex-direction: column;
   gap: 15px;
-  max-width: 600px;
-  margin: 0 auto;
+}
+/* Styling scrollbar biar lebih cantik */
+.note-list::-webkit-scrollbar {
+  width: 8px;
+}
+.note-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+.note-list::-webkit-scrollbar-thumb {
+  background: #ff69b4;
+  border-radius: 5px;
+}
+.note-list::-webkit-scrollbar-thumb:hover {
+  background: #ff1493;
 }
 .note-card {
   background-color: #fff;
