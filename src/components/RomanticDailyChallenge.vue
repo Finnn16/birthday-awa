@@ -4,19 +4,18 @@
       <div class="pixel-heart-challenge"></div>
       <div class="music-player">
         <audio ref="bgMusic" loop>
-          <source src="/public/music/Maroon_5_Wont_Go_Home.mp3" type="audio/mpeg">
+          <source src="/public/music/Maroon_5_Wont_Go_Home.mp3" type="audio/mpeg" />
           Browser Anda tidak mendukung elemen audio.
         </audio>
-        <button 
-          @click="toggleMusic" 
+        <button
+          @click="toggleMusic"
           class="pixel-button music-btn"
-          :class="{ 'playing': isMusicPlaying }"
+          :class="{ playing: isMusicPlaying }"
         >
           {{ isMusicPlaying ? 'Pause Music' : 'Play Music' }}
         </button>
         <div class="lyrics-display">
-          <p class="typing-lyrics" 
-             :class="{ 'finished': isTypingFinished }">{{ displayedLyrics }}</p>
+          <p class="typing-lyrics" :class="{ finished: isTypingFinished }">{{ displayedLyrics }}</p>
         </div>
       </div>
       <div class="player-stats-container">
@@ -24,14 +23,9 @@
           <div class="level-badge">
             Level {{ currentLevelInfo.level }}: {{ currentLevelInfo.name }}
           </div>
-          <div class="points-display">
-            Total Points: {{ playerStats.totalPoints }}
-          </div>
+          <div class="points-display">Total Points: {{ playerStats.totalPoints }}</div>
           <div class="level-progress">
-            <div 
-              class="progress-bar" 
-              :style="{ width: `${progressToNextLevel}%` }"
-            ></div>
+            <div class="progress-bar" :style="{ width: `${progressToNextLevel}%` }"></div>
           </div>
           <div v-if="nextLevelInfo" class="next-level-info">
             <p>Next Level: {{ nextLevelInfo.name }}</p>
@@ -40,57 +34,49 @@
           </div>
         </div>
       </div>
-      
+
       <h2 class="challenge-title">Goal: Agar Makin Asik Jeu mwehehehe</h2>
-      
+
       <div v-if="!isValidPeriod" class="challenge-inactive">
         <p>Tantangan hanya tersedia dari 13-04-2025 sampai 19-04-2025</p>
       </div>
-      
+
       <div v-else class="challenges-content">
-        <div 
-          v-for="(challenge, index) in weeklyChallenges" 
-          :key="index" 
-          class="challenge-item"
-        >
+        <div v-for="(challenge, index) in weeklyChallenges" :key="index" class="challenge-item">
           <div class="challenge-text">
             {{ challenge.text }}
           </div>
-          
+
           <div class="challenge-details">
             <div class="challenge-category">
               <span class="pixel-tag">{{ challenge.category }}</span>
             </div>
             <div class="challenge-difficulty">
               <span class="pixel-difficulty">
-                Level: 
-                <span 
-                  v-for="n in challenge.difficulty" 
-                  :key="n" 
-                  class="difficulty-heart"
-                >❤️</span>
+                Level:
+                <span v-for="n in challenge.difficulty" :key="n" class="difficulty-heart">❤️</span>
               </span>
             </div>
           </div>
-          
+
           <div class="challenge-actions">
-            <button 
-              @click="completeChallenge(index)" 
+            <button
+              @click="completeChallenge(index)"
               :disabled="challenge.completed"
               class="pixel-button complete-btn"
-              :class="{ 'completed': challenge.completed }"
+              :class="{ completed: challenge.completed }"
             >
               {{ challenge.completed ? 'Selesai' : 'Selesaikan Tantangan' }}
             </button>
           </div>
         </div>
       </div>
-      
+
       <div class="challenge-history">
         <h3>Riwayat Tantangan</h3>
         <ul>
-          <li 
-            v-for="(challenge, index) in completedChallenges" 
+          <li
+            v-for="(challenge, index) in completedChallenges"
             :key="index"
             :class="challenge.completed ? 'completed' : 'skipped'"
           >
@@ -111,38 +97,38 @@ export default {
   data() {
     return {
       challenges: {
-        '13-04-2025': [
-          { 
-            text: "Bikin JJ berdua terus up di story ig kamu",
-            category: "Fun",
+        '04-05-2025': [
+          {
+            text: 'Bikin JJ berdua terus up di story ig kamu',
+            category: 'Fun',
             difficulty: 3,
-            completed: false
+            completed: false,
           },
-          { 
-            text: "Buat video 30 detik ngomong, -I Love You- berulang kali",
-            category: "Bonding",
+          {
+            text: 'Buat video 30 detik ngomong, -I Love You- berulang kali',
+            category: 'Bonding',
             difficulty: 3,
-            completed: false
+            completed: false,
           },
-          { 
-            text: "Coba spill salah satu rahasia yang belum pernah kamu kasih tau(mayan poin no tipu-tipu)",
-            category: "Trust",
+          {
+            text: 'Coba spill salah satu rahasia yang belum pernah kamu kasih tau(mayan poin no tipu-tipu)',
+            category: 'Trust',
             difficulty: 5,
-            completed: false
+            completed: false,
           },
-          { 
-            text: "Bagikan 3 momen berkesan yang kamu ingat bebas, lewat line yaa",
-            category: "Memory Lane",
+          {
+            text: 'Bagikan 3 momen berkesan yang kamu ingat bebas, lewat line yaa',
+            category: 'Memory Lane',
             difficulty: 2,
-            completed: false
+            completed: false,
           },
-          { 
-            text: "Berikan keluh kesah kamu 1 minggu ini (pasti terakhir ini complete nyaa)",
-            category: "Future Planning",
+          {
+            text: 'Berikan keluh kesah kamu 1 minggu ini (pasti terakhir ini complete nyaa)',
+            category: 'Future Planning',
             difficulty: 3,
-            completed: false
-          }
-        ]
+            completed: false,
+          },
+        ],
       },
       completedChallenges: [],
       weeklyChallenges: [],
@@ -151,226 +137,229 @@ export default {
         totalPoints: 26,
         currentLevel: 2,
         levelInfo: [
-          { 
-            level: 0, 
-            name: "PDKT", 
-            minPoints: 0, 
+          {
+            level: 0,
+            name: 'PDKT',
+            minPoints: 0,
             maxPoints: 10,
-            reward: "Kartu Digital Ucapan (Birthday)",
-            physicalReward: "Coklat atau permen bebas awa"
+            reward: 'Kartu Digital Ucapan (Birthday)',
+            physicalReward: 'Coklat atau permen bebas awa',
           },
-          { 
-            level: 1, 
-            name: "EZ INIMAH BLOM KECINTAAN", 
-            minPoints: 11, 
+          {
+            level: 1,
+            name: 'EZ INIMAH BLOM KECINTAAN',
+            minPoints: 11,
             maxPoints: 25,
-            reward: "Kartu Digital Ucapan (Birthday)",
-            physicalReward: "Coklat atau permen bebas sayangku"
+            reward: 'Kartu Digital Ucapan (Birthday)',
+            physicalReward: 'Coklat atau permen bebas sayangku',
           },
-          { 
-            level: 2, 
-            name: "Bibit Bibit cingtaah nich<3", 
-            minPoints: 26, 
+          {
+            level: 2,
+            name: 'Bibit Bibit cingtaah nich<3',
+            minPoints: 26,
             maxPoints: 50,
-            reward: "Nonton Bioskop",
-            physicalReward: "Mam Pecel Persaudaraan"
+            reward: 'Nonton Bioskop',
+            physicalReward: 'Mam Pecel Persaudaraan',
           },
-          { 
-            level: 3, 
-            name: "CINTA MATI TAHAP 1", 
-            minPoints: 51, 
+          {
+            level: 3,
+            name: 'CINTA MATI TAHAP 1',
+            minPoints: 51,
             maxPoints: 75,
-            reward: "AYCE Kali Yaaa",
-            physicalReward: "Apaa yaa masih bingung mwehe"
+            reward: 'AYCE Kali Yaaa',
+            physicalReward: 'Apaa yaa masih bingung mwehe',
           },
-          { 
-            level: 4, 
-            name: "Legenda Cinta", 
-            minPoints: 76, 
+          {
+            level: 4,
+            name: 'Legenda Cinta',
+            minPoints: 76,
             maxPoints: 100,
-            reward: "Titel khusus di profile",
-            physicalReward: "Dinner voucher atau pengalaman bersama"
-          }
-        ]
+            reward: 'Titel khusus di profile',
+            physicalReward: 'Dinner voucher atau pengalaman bersama',
+          },
+        ],
       },
       weeklyChallengesStatus: {},
       isMusicPlaying: false,
       startTime: 35,
       isTypingFinished: false,
-      fullLyrics: "Just give me one more chance to make it right I may not make it through the night I won't go home without you...<3",
-      displayedLyrics: "",
-      typingSpeed: 100
+      fullLyrics:
+        "Just give me one more chance to make it right I may not make it through the night I won't go home without you...<3",
+      displayedLyrics: '',
+      typingSpeed: 100,
     }
   },
   methods: {
     toggleMusic() {
-      const audio = this.$refs.bgMusic;
+      const audio = this.$refs.bgMusic
       if (!this.isMusicPlaying) {
-        audio.currentTime = this.startTime;
-        audio.play();
-        this.typeLyrics();
+        audio.currentTime = this.startTime
+        audio.play()
+        this.typeLyrics()
       } else {
-        audio.pause();
-        this.displayedLyrics = this.fullLyrics;
-        this.isTypingFinished = true;
+        audio.pause()
+        this.displayedLyrics = this.fullLyrics
+        this.isTypingFinished = true
       }
-      this.isMusicPlaying = !this.isMusicPlaying;
+      this.isMusicPlaying = !this.isMusicPlaying
     },
     typeLyrics() {
       if (this.typingInterval) {
-        clearInterval(this.typingInterval);
+        clearInterval(this.typingInterval)
       }
-      this.displayedLyrics = "";
-      this.isTypingFinished = false;
-      let charIndex = 0;
+      this.displayedLyrics = ''
+      this.isTypingFinished = false
+      let charIndex = 0
       this.typingInterval = setInterval(() => {
         if (charIndex < this.fullLyrics.length) {
-          this.displayedLyrics += this.fullLyrics[charIndex];
-          charIndex++;
+          this.displayedLyrics += this.fullLyrics[charIndex]
+          charIndex++
         } else {
-          clearInterval(this.typingInterval);
-          this.typingInterval = null;
-          this.isTypingFinished = true;
+          clearInterval(this.typingInterval)
+          this.typingInterval = null
+          this.isTypingFinished = true
           setTimeout(() => {
-            if (this.isMusicPlaying) this.typeLyrics();
-          }, 9000);
+            if (this.isMusicPlaying) this.typeLyrics()
+          }, 9000)
         }
-      }, this.typingSpeed);
+      }, this.typingSpeed)
     },
     getIndonesiaTime() {
-      const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-      this.currentIndonesiaTime = now;
-      return now;
+      const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }))
+      this.currentIndonesiaTime = now
+      return now
     },
     loadCompletedChallenges() {
-      const saved = localStorage.getItem('completedChallenges');
+      const saved = localStorage.getItem('completedChallenges')
       if (saved) {
-        this.completedChallenges = JSON.parse(saved);
+        this.completedChallenges = JSON.parse(saved)
       }
     },
     loadPlayerStats() {
-      const savedStats = localStorage.getItem('playerStats');
+      const savedStats = localStorage.getItem('playerStats')
       if (savedStats) {
-        this.playerStats = JSON.parse(savedStats);
+        this.playerStats = JSON.parse(savedStats)
       }
     },
     savePlayerStats() {
-      localStorage.setItem('playerStats', JSON.stringify(this.playerStats));
+      localStorage.setItem('playerStats', JSON.stringify(this.playerStats))
     },
     updatePlayerPoints(difficulty) {
-      this.playerStats.totalPoints += difficulty;
-      this.updatePlayerLevel();
-      this.savePlayerStats();
+      this.playerStats.totalPoints += difficulty
+      this.updatePlayerLevel()
+      this.savePlayerStats()
     },
     updatePlayerLevel() {
       const currentLevel = this.playerStats.levelInfo.find(
-        level => this.playerStats.totalPoints >= level.minPoints && 
-                 this.playerStats.totalPoints <= level.maxPoints
-      );
+        (level) =>
+          this.playerStats.totalPoints >= level.minPoints &&
+          this.playerStats.totalPoints <= level.maxPoints,
+      )
       if (currentLevel) {
-        this.playerStats.currentLevel = currentLevel.level;
+        this.playerStats.currentLevel = currentLevel.level
       }
     },
     completeChallenge(index) {
-      if (!this.weeklyChallenges[index]) return;
-      const challenge = this.weeklyChallenges[index];
-      challenge.completed = true;
-      const weekKey = this.weekKey;
+      if (!this.weeklyChallenges[index]) return
+      const challenge = this.weeklyChallenges[index]
+      challenge.completed = true
+      const weekKey = this.weekKey
       if (!this.weeklyChallengesStatus[weekKey]) {
-        this.weeklyChallengesStatus[weekKey] = {};
+        this.weeklyChallengesStatus[weekKey] = {}
       }
       if (!this.weeklyChallengesStatus[weekKey][challenge.text]) {
-        this.updatePlayerPoints(challenge.difficulty);
-        this.weeklyChallengesStatus[weekKey][challenge.text] = true;
+        this.updatePlayerPoints(challenge.difficulty)
+        this.weeklyChallengesStatus[weekKey][challenge.text] = true
       }
       this.completedChallenges.unshift({
         text: challenge.text,
         completed: true,
         points: challenge.difficulty,
-        date: this.getIndonesiaTime().toISOString()
-      });
-      this.saveWeeklyChallengesStatus();
-      this.saveCompletedChallenges();
+        date: this.getIndonesiaTime().toISOString(),
+      })
+      this.saveWeeklyChallengesStatus()
+      this.saveCompletedChallenges()
     },
     saveCompletedChallenges() {
-      localStorage.setItem('completedChallenges', JSON.stringify(this.completedChallenges));
+      localStorage.setItem('completedChallenges', JSON.stringify(this.completedChallenges))
     },
     loadWeeklyChallengesStatus() {
-      const saved = localStorage.getItem('weeklyChallengesStatus');
+      const saved = localStorage.getItem('weeklyChallengesStatus')
       if (saved) {
-        this.weeklyChallengesStatus = JSON.parse(saved);
+        this.weeklyChallengesStatus = JSON.parse(saved)
       }
     },
     saveWeeklyChallengesStatus() {
-      localStorage.setItem('weeklyChallengesStatus', JSON.stringify(this.weeklyChallengesStatus));
+      localStorage.setItem('weeklyChallengesStatus', JSON.stringify(this.weeklyChallengesStatus))
     },
     setWeeklyChallenges() {
-      const weekKey = this.weekKey;
-      let weeklyChallenges = this.challenges[weekKey] || [];
-      const savedWeekStatus = this.weeklyChallengesStatus[weekKey];
+      const weekKey = this.weekKey
+      let weeklyChallenges = this.challenges[weekKey] || []
+      const savedWeekStatus = this.weeklyChallengesStatus[weekKey]
       if (savedWeekStatus) {
-        weeklyChallenges = weeklyChallenges.map(challenge => ({
+        weeklyChallenges = weeklyChallenges.map((challenge) => ({
           ...challenge,
-          completed: savedWeekStatus[challenge.text] || false
-        }));
+          completed: savedWeekStatus[challenge.text] || false,
+        }))
       }
-      this.weeklyChallenges = weeklyChallenges;
-    }
+      this.weeklyChallenges = weeklyChallenges
+    },
   },
   computed: {
     isValidPeriod() {
-      if (!this.currentIndonesiaTime) return false;
-      const currentYear = this.currentIndonesiaTime.getFullYear();
-      const currentMonth = this.currentIndonesiaTime.getMonth() + 1;
-      const currentDate = this.currentIndonesiaTime.getDate();
-      return (currentYear === 2025) && 
-             (currentMonth === 4) && 
-             (currentDate >= 13 && currentDate <= 19);
+      if (!this.currentIndonesiaTime) return false
+      const currentYear = this.currentIndonesiaTime.getFullYear()
+      const currentMonth = this.currentIndonesiaTime.getMonth() + 1
+      const currentDate = this.currentIndonesiaTime.getDate()
+      return currentYear === 2025 && currentMonth === 5 && currentDate >= 4 && currentDate <= 12
     },
     weekKey() {
-      if (!this.currentIndonesiaTime) return '';
-      const date = new Date(this.currentIndonesiaTime);
+      if (!this.currentIndonesiaTime) return ''
+      const date = new Date(this.currentIndonesiaTime)
       // Set ke tanggal mulai minggu (13 April 2025)
-      const startDate = new Date(2025, 3, 13); // 3 = April (0-based)
-      const currentDate = new Date(date);
-      const diffInDays = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+      const startDate = new Date(2025, 4, 4) // 3 = April (0-based)
+      const currentDate = new Date(date)
+      const diffInDays = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24))
       if (diffInDays >= 0 && diffInDays < 7) {
-        return '13-04-2025';
+        return '04-05-2025'
       }
-      return '';
+      return ''
     },
     currentLevelInfo() {
-      return this.playerStats.levelInfo.find(
-        level => this.playerStats.totalPoints >= level.minPoints && 
-                 this.playerStats.totalPoints <= level.maxPoints
-      ) || this.playerStats.levelInfo[0];
+      return (
+        this.playerStats.levelInfo.find(
+          (level) =>
+            this.playerStats.totalPoints >= level.minPoints &&
+            this.playerStats.totalPoints <= level.maxPoints,
+        ) || this.playerStats.levelInfo[0]
+      )
     },
     nextLevelInfo() {
       const currentLevelIndex = this.playerStats.levelInfo.findIndex(
-        level => level.level === this.currentLevelInfo.level
-      );
-      return this.playerStats.levelInfo[currentLevelIndex + 1] || null;
+        (level) => level.level === this.currentLevelInfo.level,
+      )
+      return this.playerStats.levelInfo[currentLevelIndex + 1] || null
     },
     progressToNextLevel() {
-      const currentLevel = this.currentLevelInfo;
-      const nextLevel = this.nextLevelInfo;
-      if (!nextLevel) return 100;
-      const totalLevelRange = nextLevel.minPoints - currentLevel.minPoints;
-      const currentProgress = this.playerStats.totalPoints - currentLevel.minPoints;
-      return Math.min((currentProgress / totalLevelRange) * 100, 100);
-    }
+      const currentLevel = this.currentLevelInfo
+      const nextLevel = this.nextLevelInfo
+      if (!nextLevel) return 100
+      const totalLevelRange = nextLevel.minPoints - currentLevel.minPoints
+      const currentProgress = this.playerStats.totalPoints - currentLevel.minPoints
+      return Math.min((currentProgress / totalLevelRange) * 100, 100)
+    },
   },
   mounted() {
-    this.getIndonesiaTime();
+    this.getIndonesiaTime()
     this.$nextTick(() => {
-      this.loadCompletedChallenges();
-      this.loadPlayerStats();
-      this.loadWeeklyChallengesStatus();
-      this.setWeeklyChallenges();
-      this.toggleMusic();
-      this.typeLyrics();
-    });
-  }
+      this.loadCompletedChallenges()
+      this.loadPlayerStats()
+      this.loadWeeklyChallengesStatus()
+      this.setWeeklyChallenges()
+      this.toggleMusic()
+      this.typeLyrics()
+    })
+  },
 }
 </script>
 
@@ -428,8 +417,13 @@ export default {
 }
 
 @keyframes blink {
-  from, to { border-color: transparent; }
-  50% { border-color: #ff69b4; }
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: #ff69b4;
+  }
 }
 
 @media (max-width: 678px) {
@@ -500,18 +494,13 @@ export default {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    120deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.3), 
-    transparent
-  );
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
   transition: all 0.5s ease;
 }
 
 .pixel-button:hover {
   transform: translateY(-3px);
-  box-shadow: 
+  box-shadow:
     0 6px 8px rgba(255, 20, 147, 0.4),
     0 2px 4px rgba(255, 20, 147, 0.2);
   background-color: #ff69b4;
@@ -523,7 +512,7 @@ export default {
 
 .pixel-button:active {
   transform: translateY(1px);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(255, 20, 147, 0.2),
     0 1px 2px rgba(255, 20, 147, 0.1);
 }
@@ -611,7 +600,8 @@ export default {
     flex-direction: column;
     align-items: center;
   }
-  .challenge-category, .challenge-difficulty {
+  .challenge-category,
+  .challenge-difficulty {
     margin-bottom: 10px;
   }
 }
