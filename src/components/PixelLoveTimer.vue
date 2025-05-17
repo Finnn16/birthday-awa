@@ -50,7 +50,7 @@ export default {
   name: 'PixelLoveTimer',
   data() {
     return {
-      targetDate: new Date('2025-05-24T17:00:00Z'), // 00:00 WIB 25 Mei 2025
+      targetDate: new Date('2025-05-17T13:20:00Z'), // 20:23 WIB, 5 menit dari sekarang
       days: 0,
       hours: 0,
       minutes: 0,
