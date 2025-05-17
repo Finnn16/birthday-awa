@@ -1,21 +1,15 @@
 <template>
   <div class="pixel-love-container">
     <PixelLoveTimer />
-    
+
     <div class="challenge-section">
       <div class="challenge-toggle">
-        <button 
-          @click="toggleChallengeVisibility" 
-          class="pixel-button challenge-btn"
-        >
+        <button @click="toggleChallengeVisibility" class="pixel-button challenge-btn">
           {{ isChallengeVisible ? 'Tutup' : 'I nak challenges' }}
         </button>
       </div>
       <transition name="slide-fade">
-        <RomanticDailyChallenge 
-          v-if="isChallengeVisible" 
-          class="daily-challenge-component"
-        />
+        <RomanticDailyChallenge v-if="isChallengeVisible" class="daily-challenge-component" />
       </transition>
       <photobooth />
 
@@ -40,14 +34,14 @@ export default {
   },
   data() {
     return {
-      isChallengeVisible: false
+      isChallengeVisible: false,
     }
   },
   methods: {
     toggleChallengeVisibility() {
       this.isChallengeVisible = !this.isChallengeVisible
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -60,7 +54,16 @@ export default {
 .pixel-love-container {
   font-family: 'Press Start 2P', cursive;
   background-color: #ffb6c1;
-  background-image: linear-gradient(45deg, #ffb6c1 25%, #ffc0cb 25%, #ffc0cb 50%, #ffb6c1 50%, #ffb6c1 75%, #ffc0cb 75%, #ffc0cb 100%);
+  background-image: linear-gradient(
+    45deg,
+    #ffb6c1 25%,
+    #ffc0cb 25%,
+    #ffc0cb 50%,
+    #ffb6c1 50%,
+    #ffb6c1 75%,
+    #ffc0cb 75%,
+    #ffc0cb 100%
+  );
   background-size: 20px 20px;
   min-height: 100vh;
   min-width: 100vw;
@@ -122,5 +125,4 @@ export default {
   opacity: 1;
   transform: translateY(0);
 }
-
 </style>
