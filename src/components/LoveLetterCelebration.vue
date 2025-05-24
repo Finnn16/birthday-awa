@@ -31,14 +31,9 @@ import ConfettiExplosion from 'vue-confetti-explosion'
 
 export default {
   name: 'LoveLetterCelebration',
-  components: {
-    ConfettiExplosion,
-  },
+  components: { ConfettiExplosion },
   props: {
-    show: {
-      type: Boolean,
-      default: false,
-    },
+    show: { type: Boolean, default: false },
   },
   data() {
     return {
@@ -49,9 +44,9 @@ export default {
   watch: {
     show(newVal) {
       if (newVal) {
+        console.log('LoveLetterCelebration is triggered at', new Date().toLocaleTimeString())
         this.showConfetti = true
         this.$emit('update:show', true)
-        console.log('Love Letter Celebration shown at', new Date().toLocaleTimeString())
       }
     },
   },
@@ -59,7 +54,7 @@ export default {
     onConfettiFinished() {
       setTimeout(() => {
         this.letterVisible = true
-      }, 500) // Delay munculnya surat setelah confetti selesai
+      }, 500)
     },
   },
 }

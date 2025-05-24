@@ -1,20 +1,6 @@
 <template>
   <div class="pixel-love-container">
     <PixelLoveTimer />
-
-    <div class="challenge-section">
-      <div class="challenge-toggle">
-        <button @click="toggleChallengeVisibility" class="pixel-button challenge-btn">
-          {{ isChallengeVisible ? 'Tutup' : 'I nak challenges' }}
-        </button>
-      </div>
-      <transition name="slide-fade">
-        <RomanticDailyChallenge v-if="isChallengeVisible" class="daily-challenge-component" />
-      </transition>
-      <photobooth />
-
-      <lovenotes />
-    </div>
   </div>
 </template>
 

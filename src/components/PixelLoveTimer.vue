@@ -3,7 +3,6 @@
     <div class="timer-container">
       <div class="pixel-heart"></div>
       <h1 class="pixel-title">Countdown to Special Day</h1>
-
       <div class="timer-display">
         <div class="timer-unit">
           <div class="timer-value">{{ days }}</div>
@@ -22,18 +21,15 @@
           <div class="timer-label">SECONDS</div>
         </div>
       </div>
-
       <div class="message-box">
         <p class="pixel-message">{{ message }}</p>
-
-        <!-- Link opsional, bisa dihapus kalau gak perlu -->
         <div v-if="isSpecialDay" class="home-link-container">
-          <a href="/" class="home-link">
-            <span class="pixel-arrow">→</span> Go to Main Page <span class="pixel-arrow">←</span>
+          <a href="/surprise.html" class="home-link">
+            <span class="pixel-arrow">→</span> Unwrap Your Special Surprise!
+            <span class="pixel-arrow">←</span>
           </a>
         </div>
       </div>
-
       <div class="pixel-hearts-container">
         <div class="small-heart heart1"></div>
         <div class="small-heart heart2"></div>
@@ -50,7 +46,7 @@ export default {
   name: 'PixelLoveTimer',
   data() {
     return {
-      targetDate: new Date('2025-05-24T17:00:00Z'), // 00:00 WIB 25 Mei 2025
+      targetDate: new Date('2025-05-25T00:00:00Z'), // 20:23 WIB
       days: 0,
       hours: 0,
       minutes: 0,
@@ -71,19 +67,16 @@ export default {
     updateTimer() {
       const now = new Date()
       const timeDifference = this.targetDate - now
-
       if (timeDifference > 0) {
         const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24))
         const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
         const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60))
         const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000)
-
         this.days = this.formatTime(days)
         this.hours = this.formatTime(hours)
         this.minutes = this.formatTime(minutes)
         this.seconds = this.formatTime(seconds)
         this.isSpecialDay = false
-
         if (days > 365) {
           this.message = "More than a year to go! Can't wait! ❤️"
         } else if (days > 30) {
@@ -102,15 +95,27 @@ export default {
         this.seconds = '00'
         this.message = 'Our special day has arrived! ❤️'
         this.isSpecialDay = true
-        this.$emit('countdown-finished') // Emit event pas countdown selesai
+        this.$emit('countdown-finished')
       }
     },
     formatTime(time) {
       return time < 10 ? `0${time}` : time
     },
+    forceFinish() {
+      console.log('Force finish triggered at', new Date().toLocaleTimeString())
+      this.days = '00'
+      this.hours = '00'
+      this.minutes = '00'
+      this.seconds = '00'
+      this.message = 'Our special day has arrived! ❤️'
+      this.isSpecialDay = true
+      this.$emit('countdown-finished')
+    },
   },
 }
 </script>
+
+<!-- Style sama kayak sebelumnya, gak perlu diubah -->
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');

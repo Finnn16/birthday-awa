@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Sayangku ❤️</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fuzzy+Bubbles:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            background-image: url(src/assets/bag.png);
+            overflow-x: hidden;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .heading {
+            font-size: 40px;
+            color: #ff69b4;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: fadeIn 1.5s ease-in-out;
+        }
+
+        .text-area {
+            background-image: url('https://unblast.com/wp-content/uploads/2022/01/Paper-Texture-1.jpg') !important;
+            background-size: cover;
+            font-family: "Fuzzy Bubbles", sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            position: relative;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        .text-area:hover {
+            transform: scale(1.02);
+            transition: transform 0.3s ease;
+        }
+
+        .heart {
+            position: fixed;
+            /* Menggunakan fixed agar tetap terlihat saat scroll */
+            font-size: 20px;
+            color: #ff69b4;
+            opacity: 0;
+            animation: floatHeart 5s infinite;
+            z-index: 1;
+            pointer-events: none;
+            /* Mencegah interferensi dengan konten */
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes floatHeart {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, 0) scale(0.3);
+            }
+
+            20% {
+                opacity: 0.9;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -150vh) scale(2);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .heading {
+                font-size: 30px;
+            }
+
+            .text-area {
+                font-size: 20px;
+                max-width: 90%;
+            }
+
+            .heart {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="text-area">
+            <p class="heading">Happy Birthday Sayangku ❤️💕</p>
+            <p>
+                pertama-tama tentunya aku mau minta maaf kalau tidak sesuai dengan ekspektasi kamu yaa sayaang mwehehe
+                tapi ini semua aku buat dengan sungguh-sungguh kok hehehe❤️<br><br>
+                Happy birthday sayangku, semoga di umur yang baru ini kamu bisa lebih bahagia dan lebih baik lagi dari
+                sebelumnya gak lupa juga semakin sabar sedalamnya buat menghadapi cowokmu yang prik ini HAHAHAHA. Semoga
+                semua harapan dan cita-cita kamu bisa tercapai yaa sayangku❤️<br><br>
+                Terima kasih sudah mau menerima aku apa adanya, terima kasih sudah mau sabar sama semua sikapku yang
+                kadang ngeselin(sering sih mwehe), terima kasih sudah mau berbagi suka dan duka sama aku, aku tau ini
+                ulang tahun kamu tapi aku juga mau numpang berdoa agar aku gak selalu membebani kamu dengan semua sikap
+                aku, I'll try my best yaa sayangku untuk kedepannya semoga semua masalah dijauhkan dari kamu dan
+                jikalaupun ada semoga aku bisa jadi orang yang bisa membantu atau meringakan masalah kamu itu aamiin,
+                gak lupa juga semoga makin banyak dilimpahkan rezeki untuk dirimu sendiri agar semakin terpenuhi semua
+                keinginan kamu xixixixi<br><br>
+                untuk hadiah, aku udah nyiapin beberapa hal yang semoga bisa bikin kamu seneng yaa sayangku dan kuharap
+                bisa sangat menjadi barang favorite kamu karena aku udah mikirin hadiah ini dari awal bulan april
+                sebenarnya dan ada banyak tpi karena budget jadi aku eliminasi dulu beberapa yaa heheheeh, aku juga
+                udah gak sabar sebenernya buat ngasih hadiah ini secara langsung ke kamu tapi maaf yaa kalau hadiahnya
+                gak bisa bertepatan dengan hari H nya banget huhuhu so sorry yaa sayaang.<br><br>
+                untuk challenge yang kemarin-kemarin udah aku siapin hadiah nya juga bakalan aku kasih kok, beberapa kan
+                udah aku kasih yaa? yang belum itu semoga bisa barengan dengan hadiah utamanya yaa sayaangku.<br><br>
+                -Finfun
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function createHeart() {
+            const heart = document.createElement('i');
+            heart.classList.add('fas', 'fa-heart', 'heart');
+            heart.style.left = Math.random() * 100 + 'vw'; // Distribusi penuh di X
+            heart.style.top = Math.random() * 100 + 'vh'; // Distribusi penuh di Y
+            heart.style.fontSize = Math.random() * 30 + 20 + 'px'; // Ukuran 20-50px
+            heart.style.animationDuration = Math.random() * 2 + 3 + 's'; // Durasi 3-5 detik
+            document.body.appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, 5000); // Sesuai dengan durasi animasi
+        }
+
+        // Membuat hati lebih sering muncul
+        setInterval(createHeart, 200);
+
+        // Efek fade-in saat halaman dimuat
+        window.addEventListener('load', () => {
+            document.querySelector('.container').style.opacity = '1';
+        });
+    </script>
+</body>
+
+</html>
